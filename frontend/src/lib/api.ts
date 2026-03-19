@@ -14,6 +14,30 @@ function getAuthHeaders(): Record<string, string> {
     : {};
 }
 
+function clearAuthAndRedirectToLogin() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const hasToken = Boolean(localStorage.getItem("access_token"));
+  const hasUser = Boolean(localStorage.getItem("auth_user"));
+  if (!hasToken && !hasUser) {
+    return;
+  }
+
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("auth_user");
+  window.location.href = "/login";
+}
+
+function handleFetchError(res: Response, message: string): never {
+  if (res.status === 401 || res.status === 403) {
+    clearAuthAndRedirectToLogin();
+  }
+
+  throw new Error(message);
+}
+
 export type Shipment = {
   id: string;
   title: string;
@@ -60,7 +84,7 @@ export async function fetchUsers(): Promise<AdminUser[]> {
   });
 
   if (!res.ok) {
-    throw new Error("Failed to fetch users");
+    handleFetchError(res, "Failed to fetch users");
   }
 
   return res.json();
@@ -77,7 +101,7 @@ export async function updateUserRole(userId: string, role: string) {
   });
 
   if (!res.ok) {
-    throw new Error("Failed to update user role");
+    handleFetchError(res, "Failed to update user role");
   }
 
   return res.json();
@@ -91,7 +115,7 @@ export async function fetchCouriers(): Promise<Courier[]> {
   });
 
   if (!res.ok) {
-    throw new Error("Failed to fetch couriers");
+    handleFetchError(res, "Failed to fetch couriers");
   }
 
   return res.json();
@@ -114,7 +138,7 @@ export async function assignCourierToShipment(
   );
 
   if (!res.ok) {
-    throw new Error("Failed to assign courier");
+    handleFetchError(res, "Failed to assign courier");
   }
 
   return res.json();
@@ -135,7 +159,7 @@ export async function fetchShipments(): Promise<Shipment[]> {
   });
 
   if (!res.ok) {
-    throw new Error("Failed to fetch shipments");
+    handleFetchError(res, "Failed to fetch shipments");
   }
   return res.json();
 }
@@ -150,7 +174,7 @@ export async function createShipment(
   });
 
   if (!res.ok) {
-    throw new Error("Failed to create shipment");
+    handleFetchError(res, "Failed to create shipment");
   }
 
   return res.json();
@@ -169,7 +193,7 @@ export async function registerUser(input: RegisterInput) {
   });
 
   if (!res.ok) {
-    throw new Error("Failed to register");
+    handleFetchError(res, "Failed to register");
   }
 
   return res.json();
@@ -188,7 +212,7 @@ export async function loginUser(input: LoginInput) {
   });
 
   if (!res.ok) {
-    throw new Error("Failed to login");
+    handleFetchError(res, "Failed to login");
   }
 
   return res.json();
@@ -210,7 +234,7 @@ export async function fetchShipmentMetrics(): Promise<ShipmentMetrics> {
   });
 
   if (!res.ok) {
-    throw new Error("Failed to fetch shipment metrics");
+    handleFetchError(res, "Failed to fetch shipment metrics");
   }
 
   return res.json();
@@ -237,7 +261,7 @@ export async function createTrackingEvent(
   });
 
   if (!res.ok) {
-    throw new Error("Failed to create tracking event");
+    handleFetchError(res, "Failed to create tracking event");
   }
 
   return res.json();
@@ -253,7 +277,7 @@ export async function fetchTrackingEvents(
   });
 
   if (!res.ok) {
-    throw new Error("Failed to fetch tracking events");
+    handleFetchError(res, "Failed to fetch tracking events");
   }
 
   return res.json();
