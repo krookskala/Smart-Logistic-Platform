@@ -1,0 +1,75 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+enum Role {
+    ADMIN
+    USER
+    COURIER
+}
+
+enum ShipmentStatus {
+    CREATED
+    ASSIGNED
+    PICKED_UP
+    IN_TRANSIT
+    DELIVERED
+    DELAYED
+}
+
+model User {
+    id                  String          @id @default(uuid())
+    email               String          @unique
+    password            String      
+    role                Role            @default(USER)
+    createdAt           DateTime        @default(now())
+
+    courier             Courier?
+    shipments           Shipment[]      @relation("UserShipments")
+}
+
+model Courier {
+    id                  String          @id @default(uuid())
+    userId              String          @unique
+    vehicleType         String?     
+    availability        Boolean         @default(true)
+    createdAt           DateTime        @default(now())
+
+    user                User            @relation(fields: [userId], references: [id])
+    shipments           Shipment[]      @relation("CourierShipments")
+}
+
+model Shipment {
+    id                  String          @id @default(uuid())
+    title               String
+    description         String?
+    pickupAddress       String
+    deliveryAddress     String
+    status              ShipmentStatus  @default(CREATED)
+    createdById         String
+    assignedCourierId   String?
+    createdAt           DateTime        @default(now())
+
+    createdBy           User            @relation("UserShipments", fields: [createdById], references: [id])
+    assignedCourier     Courier?        @relation("CourierShipments", fields: [assignedCourierId], references: [id])
+    trackingEvents      TrackingEvent[]
+}
+
+model TrackingEvent {
+    id                  String          @id @default(uuid())
+    shipmentId          String
+    status              ShipmentStatus  
+    locationLat         Float?
+    locationLng         Float?
+    note                String?
+    createdAt           DateTime        @default(now())
+
+    shipment            Shipment        @relation(fields: [shipmentId], references: [id])
+
+    @@index([shipmentId, createdAt])  
+}
