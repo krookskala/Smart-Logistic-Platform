@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getStoredAuthUser } from "../../lib/auth";
+import { redirectToLoginIfUnauthorized } from "../../lib/route-guards";
 import {
   AdminUser,
   assignCourierToShipment,
@@ -41,26 +41,46 @@ export default function AdminDashboardPage() {
   const [feedback, setFeedback] = useState<FeedbackState>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    const user = getStoredAuthUser();
-
-    if (!token || !user) {
-      router.push("/login");
+    if (!redirectToLoginIfUnauthorized(router, ["ADMIN"])) {
       return;
     }
 
-    if (user.role !== "ADMIN") {
-      router.push("/login");
-      return;
-    }
+    setFeedback(null);
 
     fetchShipmentMetrics()
       .then((data) => setMetrics(data))
+      .catch(() => {
+        setFeedback({
+          type: "error",
+          message: "Failed to load admin metrics."
+        });
+      })
       .finally(() => setLoading(false));
 
-    fetchShipments().then((data) => setShipments(data));
-    fetchCouriers().then((data) => setCouriers(data));
-    fetchUsers().then((data) => setUsers(data));
+    fetchShipments()
+      .then((data) => setShipments(data))
+      .catch(() => {
+        setFeedback({
+          type: "error",
+          message: "Failed to load shipments."
+        });
+      });
+    fetchCouriers()
+      .then((data) => setCouriers(data))
+      .catch(() => {
+        setFeedback({
+          type: "error",
+          message: "Failed to load couriers."
+        });
+      });
+    fetchUsers()
+      .then((data) => setUsers(data))
+      .catch(() => {
+        setFeedback({
+          type: "error",
+          message: "Failed to load users."
+        });
+      });
   }, [router]);
 
   function handleCourierSelect(shipmentId: string, courierId: string) {
