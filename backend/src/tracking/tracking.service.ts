@@ -1,5 +1,7 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { AuditService } from "../audit/audit.service";
+import { AccessControlService } from "../auth/access-control.service";
 import { CreateTrackingDto } from "./dto/create-tracking.dto";
 import { TrackingGateway } from "./tracking.gateway";
 
@@ -7,7 +9,9 @@ import { TrackingGateway } from "./tracking.gateway";
 export class TrackingService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly trackingGateway: TrackingGateway
+    private readonly trackingGateway: TrackingGateway,
+    private readonly auditService: AuditService,
+    private readonly accessControlService: AccessControlService
   ) {}
 
   async create(
@@ -15,23 +19,7 @@ export class TrackingService {
     dto: CreateTrackingDto,
     user: { userId: string; role: string }
   ) {
-    const shipment = await this.prisma.shipment.findUnique({
-      where: { id: shipmentId }
-    });
-
-    if (!shipment) {
-      throw new NotFoundException("Shipment Not Found");
-    }
-
-    if (user.role === "COURIER") {
-      const courier = await this.prisma.courier.findUnique({
-        where: { userId: user.userId }
-      });
-
-      if (!courier || shipment.assignedCourierId !== courier.id) {
-        throw new NotFoundException("Shipment Not Found");
-      }
-    }
+    await this.accessControlService.assertShipmentAccess(shipmentId, user);
 
     const tracking = await this.prisma.trackingEvent.create({
       data: {
@@ -48,6 +36,19 @@ export class TrackingService {
       data: { status: dto.status }
     });
 
+    await this.auditService.log({
+      actorUserId: user.userId,
+      actionType: "TRACKING_EVENT_CREATED",
+      targetType: "Shipment",
+      targetId: shipmentId,
+      metadata: {
+        status: dto.status,
+        note: dto.note,
+        locationLat: dto.locationLat,
+        locationLng: dto.locationLng
+      }
+    });
+
     this.trackingGateway.emitShipmentUpdate({
       shipmentId,
       status: dto.status,
@@ -62,41 +63,11 @@ export class TrackingService {
     shipmentId: string,
     user: { userId: string; role: string }
   ) {
-    const shipment = await this.prisma.shipment.findUnique({
-      where: { id: shipmentId }
+    await this.accessControlService.assertShipmentAccess(shipmentId, user);
+
+    return this.prisma.trackingEvent.findMany({
+      where: { shipmentId },
+      orderBy: { createdAt: "asc" }
     });
-
-    if (!shipment) {
-      throw new NotFoundException("Shipment Not Found");
-    }
-
-    if (user.role === "ADMIN") {
-      return this.prisma.trackingEvent.findMany({
-        where: { shipmentId },
-        orderBy: { createdAt: "asc" }
-      });
-    }
-
-    if (user.role === "USER" && shipment.createdById === user.userId) {
-      return this.prisma.trackingEvent.findMany({
-        where: { shipmentId },
-        orderBy: { createdAt: "asc" }
-      });
-    }
-
-    if (user.role === "COURIER") {
-      const courier = await this.prisma.courier.findUnique({
-        where: { userId: user.userId }
-      });
-
-      if (courier && shipment.assignedCourierId === courier.id) {
-        return this.prisma.trackingEvent.findMany({
-          where: { shipmentId },
-          orderBy: { createdAt: "asc" }
-        });
-      }
-    }
-
-    throw new NotFoundException("Shipment Not Found");
   }
 }
