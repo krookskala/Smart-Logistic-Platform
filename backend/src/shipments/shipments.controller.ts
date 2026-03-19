@@ -63,7 +63,11 @@ export class ShipmentsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("ADMIN")
   @Post(":id/assign-courier")
-  assignCourier(@Param("id") id: string, @Body() dto: AssignCourierDto) {
-    return this.shipmentsService.assignCourier(id, dto.courierId);
+  assignCourier(
+    @Param("id") id: string,
+    @Body() dto: AssignCourierDto,
+    @Request() req: { user: AuthUser }
+  ) {
+    return this.shipmentsService.assignCourier(id, dto.courierId, req.user.userId);
   }
 }
