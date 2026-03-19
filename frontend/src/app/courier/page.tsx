@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getStoredAuthUser } from "../../lib/auth";
+import { redirectToLoginIfUnauthorized } from "../../lib/route-guards";
 import { fetchShipments, Shipment, createTrackingEvent } from "../../lib/api";
 import { FeedbackState, TrackingFormState } from "../../lib/types";
 import FeedbackAlert from "../../components/feedback-alert";
@@ -84,21 +84,20 @@ export default function CourierDashboardPage() {
   }
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    const user = getStoredAuthUser();
-
-    if (!token || !user) {
-      router.push("/login");
+    if (!redirectToLoginIfUnauthorized(router, ["COURIER"])) {
       return;
     }
 
-    if (user.role !== "COURIER") {
-      router.push("/login");
-      return;
-    }
+    setFeedback(null);
 
     fetchShipments()
       .then((data) => setShipments(data))
+      .catch(() => {
+        setFeedback({
+          type: "error",
+          message: "Failed to load assigned deliveries."
+        });
+      })
       .finally(() => setLoading(false));
   }, [router]);
 
