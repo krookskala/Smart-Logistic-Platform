@@ -33,9 +33,7 @@ describe("RolesGuard", () => {
   });
 
   it("denies when required roles exist but request.user is missing", () => {
-    jest
-      .spyOn(reflector, "getAllAndOverride")
-      .mockReturnValue(["ADMIN"]);
+    jest.spyOn(reflector, "getAllAndOverride").mockReturnValue(["ADMIN"]);
 
     const ctx = createExecutionContextWithUser(undefined);
     expect(guard.canActivate(ctx)).toBe(false);
@@ -51,12 +49,9 @@ describe("RolesGuard", () => {
   });
 
   it("denies when user role does not match", () => {
-    jest
-      .spyOn(reflector, "getAllAndOverride")
-      .mockReturnValue(["ADMIN"]);
+    jest.spyOn(reflector, "getAllAndOverride").mockReturnValue(["ADMIN"]);
 
     const ctx = createExecutionContextWithUser({ role: "USER" });
     expect(guard.canActivate(ctx)).toBe(false);
   });
 });
-

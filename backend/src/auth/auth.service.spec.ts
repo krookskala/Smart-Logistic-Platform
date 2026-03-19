@@ -139,7 +139,9 @@ describe("AuthService", () => {
       }
     } as any;
 
-    const jwtService = { signAsync: jest.fn().mockResolvedValue("jwt-token") } as any;
+    const jwtService = {
+      signAsync: jest.fn().mockResolvedValue("jwt-token")
+    } as any;
     const service = new AuthService(prisma, jwtService);
 
     prisma.user.findUnique.mockResolvedValue({
@@ -174,4 +176,3 @@ describe("AuthService", () => {
     });
   });
 });
-

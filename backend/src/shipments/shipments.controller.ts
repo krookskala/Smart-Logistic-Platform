@@ -68,6 +68,10 @@ export class ShipmentsController {
     @Body() dto: AssignCourierDto,
     @Request() req: { user: AuthUser }
   ) {
-    return this.shipmentsService.assignCourier(id, dto.courierId, req.user.userId);
+    return this.shipmentsService.assignCourier(
+      id,
+      dto.courierId,
+      req.user.userId
+    );
   }
 }

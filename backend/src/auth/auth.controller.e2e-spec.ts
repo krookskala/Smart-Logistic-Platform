@@ -1,4 +1,8 @@
-import { INestApplication, ValidationPipe, UnauthorizedException } from "@nestjs/common";
+import {
+  INestApplication,
+  ValidationPipe,
+  UnauthorizedException
+} from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { AuthController } from "./auth.controller";
@@ -50,7 +54,9 @@ describe("AuthController (e2e)", () => {
   });
 
   it("POST /auth/login returns 401 for invalid credentials", async () => {
-    authService.login.mockRejectedValue(new UnauthorizedException("Invalid credentials"));
+    authService.login.mockRejectedValue(
+      new UnauthorizedException("Invalid credentials")
+    );
 
     const res = await request(app.getHttpServer())
       .post("/auth/login")
@@ -59,4 +65,3 @@ describe("AuthController (e2e)", () => {
     expect(res.status).toBe(401);
   });
 });
-

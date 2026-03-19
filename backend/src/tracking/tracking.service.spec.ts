@@ -87,9 +87,9 @@ describe("TrackingService", () => {
 
     const auditService = { log: jest.fn().mockResolvedValue(undefined) } as any;
     const accessControlService = {
-      assertShipmentAccess: jest.fn().mockRejectedValue(
-        new NotFoundException("Shipment Not Found")
-      )
+      assertShipmentAccess: jest
+        .fn()
+        .mockRejectedValue(new NotFoundException("Shipment Not Found"))
     } as any;
     const service = new TrackingService(
       prisma,
@@ -212,9 +212,9 @@ describe("TrackingService", () => {
 
     const auditService = { log: jest.fn().mockResolvedValue(undefined) } as any;
     const accessControlService = {
-      assertShipmentAccess: jest.fn().mockRejectedValue(
-        new NotFoundException("Shipment Not Found")
-      )
+      assertShipmentAccess: jest
+        .fn()
+        .mockRejectedValue(new NotFoundException("Shipment Not Found"))
     } as any;
     const service = new TrackingService(
       prisma,
@@ -231,4 +231,3 @@ describe("TrackingService", () => {
     await expect(result).rejects.toBeInstanceOf(NotFoundException);
   });
 });
-

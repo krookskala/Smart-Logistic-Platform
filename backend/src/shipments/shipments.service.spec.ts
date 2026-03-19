@@ -14,7 +14,11 @@ describe("ShipmentsService", () => {
     const accessControlService = {
       assertShipmentAccess: jest.fn().mockResolvedValue({ id: "s1" })
     } as any;
-    const service = new ShipmentsService(prisma, auditService, accessControlService);
+    const service = new ShipmentsService(
+      prisma,
+      auditService,
+      accessControlService
+    );
 
     const result = await service.findAll({ userId: "u1", role: "ADMIN" });
 
@@ -38,7 +42,11 @@ describe("ShipmentsService", () => {
     const accessControlService = {
       assertShipmentAccess: jest.fn().mockResolvedValue({ id: "s1" })
     } as any;
-    const service = new ShipmentsService(prisma, auditService, accessControlService);
+    const service = new ShipmentsService(
+      prisma,
+      auditService,
+      accessControlService
+    );
 
     await service.findAll({ userId: "u1", role: "COURIER" });
 
@@ -65,7 +73,11 @@ describe("ShipmentsService", () => {
     const accessControlService = {
       assertShipmentAccess: jest.fn().mockResolvedValue({ id: "s1" })
     } as any;
-    const service = new ShipmentsService(prisma, auditService, accessControlService);
+    const service = new ShipmentsService(
+      prisma,
+      auditService,
+      accessControlService
+    );
 
     const result = await service.findAll({ userId: "u1", role: "COURIER" });
     expect(result).toEqual([]);
@@ -84,7 +96,11 @@ describe("ShipmentsService", () => {
         createdById: "u1"
       })
     } as any;
-    const service = new ShipmentsService(prisma, auditService, accessControlService);
+    const service = new ShipmentsService(
+      prisma,
+      auditService,
+      accessControlService
+    );
 
     const result = await service.findOne("s1", { userId: "u1", role: "USER" });
     expect(result).toEqual({ id: "s1", createdById: "u1" });
@@ -97,11 +113,15 @@ describe("ShipmentsService", () => {
 
     const auditService = { log: jest.fn().mockResolvedValue(undefined) } as any;
     const accessControlService = {
-      assertShipmentAccess: jest.fn().mockRejectedValue(
-        new NotFoundException("Shipment Not Found")
-      )
+      assertShipmentAccess: jest
+        .fn()
+        .mockRejectedValue(new NotFoundException("Shipment Not Found"))
     } as any;
-    const service = new ShipmentsService(prisma, auditService, accessControlService);
+    const service = new ShipmentsService(
+      prisma,
+      auditService,
+      accessControlService
+    );
 
     await expect(
       service.findOne("s1", { userId: "u1", role: "USER" })
@@ -121,9 +141,16 @@ describe("ShipmentsService", () => {
         assignedCourierId: "c1"
       })
     } as any;
-    const service = new ShipmentsService(prisma, auditService, accessControlService);
+    const service = new ShipmentsService(
+      prisma,
+      auditService,
+      accessControlService
+    );
 
-    const result = await service.findOne("s1", { userId: "u1", role: "COURIER" });
+    const result = await service.findOne("s1", {
+      userId: "u1",
+      role: "COURIER"
+    });
     expect(result).toEqual({
       id: "s1",
       createdById: "u2",
@@ -143,7 +170,11 @@ describe("ShipmentsService", () => {
     const accessControlService = {
       assertShipmentAccess: jest.fn().mockResolvedValue({ id: "s1" })
     } as any;
-    const service = new ShipmentsService(prisma, auditService, accessControlService);
+    const service = new ShipmentsService(
+      prisma,
+      auditService,
+      accessControlService
+    );
     const dto: UpdateShipmentDto = {
       title: "Updated",
       pickupAddress: "A1",
@@ -178,7 +209,11 @@ describe("ShipmentsService", () => {
     const accessControlService = {
       assertShipmentAccess: jest.fn().mockResolvedValue({ id: "s1" })
     } as any;
-    const service = new ShipmentsService(prisma, auditService, accessControlService);
+    const service = new ShipmentsService(
+      prisma,
+      auditService,
+      accessControlService
+    );
     await service.assignCourier("s1", "c1", "admin");
 
     expect(prisma.shipment.update).toHaveBeenCalledWith({
@@ -202,13 +237,14 @@ describe("ShipmentsService", () => {
     const accessControlService = {
       assertShipmentAccess: jest.fn().mockResolvedValue({ id: "s1" })
     } as any;
-    const service = new ShipmentsService(prisma, auditService, accessControlService);
+    const service = new ShipmentsService(
+      prisma,
+      auditService,
+      accessControlService
+    );
 
     await expect(
       service.assignCourier("s1", "missing", "admin")
-    ).rejects.toBeInstanceOf(
-      NotFoundException
-    );
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 });
-

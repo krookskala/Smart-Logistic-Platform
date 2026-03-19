@@ -16,7 +16,8 @@ async function bootstrap() {
       .filter(Boolean) ?? [];
 
   app.enableCors({
-    origin: allowedOrigins.length > 0 ? allowedOrigins : "http://localhost:3000",
+    origin:
+      allowedOrigins.length > 0 ? allowedOrigins : "http://localhost:3000",
     credentials: true
   });
 
