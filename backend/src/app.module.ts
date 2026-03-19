@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
-import { ThrottlerModule } from "@nestjs/throttler";
+import { APP_GUARD } from "@nestjs/core";
+import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { HealthController } from "./health/health.controller";
 import { PrismaModule } from "./prisma/prisma.module";
 import { AuthModule } from "./auth/auth.module";
@@ -26,6 +27,11 @@ import { AuditModule } from "./audit/audit.module";
     UsersModule,
     AuditModule
   ],
-  controllers: [HealthController]
+  controllers: [HealthController],
+  providers: [
+    // @nestjs/throttler doesn't automatically bind the guard as a provider;
+    // bind it via APP_GUARD so DI can resolve its dependencies.
+    { provide: APP_GUARD, useClass: ThrottlerGuard }
+  ]
 })
 export class AppModule {}

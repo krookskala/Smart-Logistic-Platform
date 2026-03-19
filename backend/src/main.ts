@@ -2,7 +2,6 @@ import "reflect-metadata";
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
-import { ThrottlerGuard } from "@nestjs/throttler";
 import { RequestLoggingInterceptor } from "./common/interceptors/request-logging.interceptor";
 
 async function bootstrap() {
@@ -21,7 +20,6 @@ async function bootstrap() {
     credentials: true
   });
 
-  app.useGlobalGuards(app.get(ThrottlerGuard));
   app.useGlobalInterceptors(new RequestLoggingInterceptor());
 
   app.useGlobalPipes(
