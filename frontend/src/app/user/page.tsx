@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getStoredAuthUser } from "../../lib/auth";
+import { redirectToLoginIfUnauthorized } from "../../lib/route-guards";
 import { createShipment, fetchShipments, Shipment } from "../../lib/api";
 import { FeedbackState } from "../../lib/types";
 import FeedbackAlert from "../../components/feedback-alert";
@@ -68,21 +68,20 @@ export default function UserDashboardPage() {
   }
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    const user = getStoredAuthUser();
-
-    if (!token || !user) {
-      router.push("/login");
+    if (!redirectToLoginIfUnauthorized(router, ["USER"])) {
       return;
     }
 
-    if (user.role !== "USER") {
-      router.push("/login");
-      return;
-    }
+    setFeedback(null);
 
     fetchShipments()
       .then((data) => setShipments(data))
+      .catch(() => {
+        setFeedback({
+          type: "error",
+          message: "Failed to load shipments."
+        });
+      })
       .finally(() => setLoading(false));
   }, [router]);
 
