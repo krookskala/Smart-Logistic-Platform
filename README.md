@@ -12,10 +12,12 @@ This project demonstrates a role-based product architecture with separate experi
 - Courier assignment workflow
 - Shipment creation and user-specific shipment visibility
 - Courier-specific delivery update flow
-- Real-time tracking updates with Socket.IO
+- Per-shipment real-time tracking rooms with Socket.IO
+- Audit logging for role changes, assignments, and tracking updates
+- Request logging and health/readiness endpoint
 - Backend RBAC and ownership enforcement
 - Shared formatting, linting, and type-checking workflow
-- CI pipeline with formatting, linting, type checking, and build validation
+- CI pipeline with formatting, linting, type checking, backend tests, and build validation
 
 ## Tech Stack
 
@@ -83,7 +85,7 @@ This project is structured around domain responsibilities instead of keeping lar
 ### Backend
 
 - auth logic is handled through JWT and role guards
-- shipment access is filtered by role and ownership
+- shipment access rules are centralized via `AccessControlService`
 - tracking creation is restricted for assigned couriers and admins
 - user role changes can automatically provision courier records when needed
 
@@ -107,8 +109,9 @@ Shipment tracking updates are emitted through Socket.IO and displayed on the shi
 The tracking detail page:
 
 - fetches the shipment’s historical tracking events on load
-- listens for live updates
-- filters socket events by the active shipment id
+- connects with the current JWT
+- joins a `shipment:<id>` room via `joinShipmentRoom`
+- listens for live updates emitted only to that room
 
 This ensures each tracking page only shows events for the correct shipment.
 
@@ -131,6 +134,9 @@ Example values are provided in [.env.example](/C:/Users/Krookskala/Desktop/Track
 ```env
 DATABASE_URL=postgres://logistics:logistics@localhost:5432/logistics
 JWT_SECRET=change-me
+ALLOWED_ORIGINS=http://localhost:3000
+JWT_ISSUER=
+JWT_AUDIENCE=
 PORT=3001
 NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
 ```
@@ -180,6 +186,7 @@ npm run format
 npm run format:check
 npm run lint
 npm run typecheck
+npm run test
 ```
 
 These commands run the checks for both frontend and backend.
@@ -191,6 +198,7 @@ The GitHub Actions workflow runs:
 - format check
 - lint
 - typecheck
+- backend tests
 - build
 
 for both frontend and backend.
@@ -199,13 +207,16 @@ for both frontend and backend.
 
 If you want to showcase this project in an interview or portfolio review, this is a strong end-to-end demo flow:
 
-1. Log in as `ADMIN`
-2. Update a user’s role to `COURIER`
-3. Assign a courier to a shipment
-4. Log in as `COURIER`
-5. Update shipment status and tracking data
-6. Open the shipment tracking page and show live updates
-7. Log in as `USER` and show role-limited shipment visibility
+1. Start the stack (recommended with Docker Compose).
+2. Seed demo data:
+   - `cd backend`
+   - `npm run prisma:seed`
+3. Log in as `admin@example.com` (password: `Admin12345!`)
+4. Promote `user1@example.com` to `COURIER` (role management panel).
+5. Assign that courier to `Demo Shipment 2`.
+6. Log in as `courier@example.com` (password: `Courier12345!`) and update tracking.
+7. Open a shipment tracking page and show live updates pushed only to that shipment room.
+8. Log in as `user2@example.com` (password: `User12345!`) and verify they only see their own shipments.
 
 ## What This Project Demonstrates
 
@@ -219,11 +230,8 @@ If you want to showcase this project in an interview or portfolio review, this i
 
 ## Future Improvements
 
-- Seed/demo data for easier first-run setup
 - Better auth error messaging from backend responses
-- Integration and end-to-end tests
-- Shipment-specific socket rooms instead of global broadcast
-- Audit logs for role and assignment changes
+- Full integration/e2e tests (beyond unit tests)
 - Richer courier availability and dispatch logic
 
 ## Author Notes
