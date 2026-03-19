@@ -31,6 +31,7 @@ model User {
 
     courier             Courier?
     shipments           Shipment[]      @relation("UserShipments")
+    auditLogs          AuditLog[]      @relation("UserAuditLogs")
 }
 
 model Courier {
@@ -72,4 +73,18 @@ model TrackingEvent {
     shipment            Shipment        @relation(fields: [shipmentId], references: [id])
 
     @@index([shipmentId, createdAt])  
+}
+
+model AuditLog {
+    id           String   @id @default(uuid())
+    actorUserId  String?
+    actionType   String
+    targetType   String
+    targetId     String?
+    metadata     Json?
+    createdAt    DateTime @default(now())
+
+    actor        User?     @relation("UserAuditLogs", fields: [actorUserId], references: [id])
+
+    @@index([createdAt])
 }
