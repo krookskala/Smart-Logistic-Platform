@@ -11,7 +11,10 @@ import { Observable, finalize } from "rxjs";
 export class RequestLoggingInterceptor implements NestInterceptor {
   private readonly logger = new Logger("HTTP");
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept<T>(
+    context: ExecutionContext,
+    next: CallHandler<T>
+  ): Observable<T> {
     const http = context.switchToHttp();
     const request = http.getRequest();
     const response = http.getResponse();

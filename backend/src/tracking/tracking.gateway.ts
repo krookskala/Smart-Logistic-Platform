@@ -46,7 +46,7 @@ export class TrackingGateway implements OnGatewayConnection {
         email: payload.email,
         role: payload.role
       };
-    } catch (err) {
+    } catch {
       this.logger.warn("Socket auth failed, disconnecting client.");
       client.disconnect(true);
     }

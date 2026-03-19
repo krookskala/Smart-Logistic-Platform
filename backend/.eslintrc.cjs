@@ -10,5 +10,14 @@ module.exports = {
   },
   plugins: ["@typescript-eslint"],
   extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  overrides: [
+    {
+      files: ["src/**/*.spec.ts"],
+      rules: {
+        // Tests frequently use `any` for mocks; keep lint focused on production code.
+        "@typescript-eslint/no-explicit-any": "off"
+      }
+    }
+  ],
   ignorePatterns: ["dist", "node_modules"]
 };

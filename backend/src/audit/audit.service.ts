@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { Prisma } from "@prisma/client";
 
 type AuditLogInput = {
   actorUserId?: string;
@@ -20,7 +21,8 @@ export class AuditService {
         actionType: input.actionType,
         targetType: input.targetType,
         targetId: input.targetId,
-        metadata: input.metadata as any
+        // Prisma `Json?` expects a Prisma JSON input type.
+        metadata: input.metadata as Prisma.InputJsonValue | undefined
       }
     });
   }
