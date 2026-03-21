@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Query,
   Param,
   Post,
   Patch,
@@ -16,6 +17,7 @@ import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Roles } from "../auth/roles.decorator";
 import { RolesGuard } from "../auth/roles.guard";
 import { AuthUser } from "../auth/auth-user.type";
+import { ListShipmentsQueryDto } from "./dto/list-shipments-query.dto";
 
 @Controller("shipments")
 export class ShipmentsController {
@@ -31,8 +33,11 @@ export class ShipmentsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("USER", "ADMIN", "COURIER")
   @Get()
-  findAll(@Request() req: { user: AuthUser }) {
-    return this.shipmentsService.findAll(req.user);
+  findAll(
+    @Request() req: { user: AuthUser },
+    @Query() query: ListShipmentsQueryDto
+  ) {
+    return this.shipmentsService.findAll(req.user, query);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -73,5 +78,12 @@ export class ShipmentsController {
       dto.courierId,
       req.user.userId
     );
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("USER", "ADMIN")
+  @Post(":id/cancel")
+  cancel(@Param("id") id: string, @Request() req: { user: AuthUser }) {
+    return this.shipmentsService.cancel(id, req.user);
   }
 }
