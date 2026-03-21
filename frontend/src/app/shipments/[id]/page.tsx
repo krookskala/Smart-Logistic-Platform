@@ -7,8 +7,11 @@ import CurrentStatusCard from "../../../components/tracking/current-status-card"
 import TrackingHistoryList from "../../../components/tracking/tracking-history-list";
 import FeedbackAlert from "../../../components/feedback-alert";
 import { FeedbackState, ShipmentUpdate } from "../../../lib/types";
-import { fetchTrackingEvents } from "../../../lib/api";
+import { fetchShipmentById, fetchTrackingEvents, Shipment } from "../../../lib/api";
 import { redirectToLoginIfUnauthorized } from "../../../lib/route-guards";
+import ShipmentSummaryCard from "../../../components/tracking/shipment-summary-card";
+import ShipmentProgressCard from "../../../components/tracking/shipment-progress-card";
+import TrackingHero from "../../../components/tracking/tracking-hero";
 
 export default function ShipmentTrackingPage() {
   const router = useRouter();
@@ -17,6 +20,7 @@ export default function ShipmentTrackingPage() {
   const [lastEvent, setLastEvent] = useState<ShipmentUpdate | null>(null);
   const [events, setEvents] = useState<ShipmentUpdate[]>([]);
   const [feedback, setFeedback] = useState<FeedbackState>(null);
+  const [shipment, setShipment] = useState<Shipment | null>(null);
 
   useEffect(() => {
     if (!redirectToLoginIfUnauthorized(router)) {
@@ -28,9 +32,18 @@ export default function ShipmentTrackingPage() {
     }
 
     setFeedback(null);
+    fetchShipmentById(shipmentId)
+      .then((data) => setShipment(data))
+      .catch(() => {
+        setFeedback({
+          type: "error",
+          message: "Failed to load shipment details."
+        });
+      });
+
     fetchTrackingEvents(shipmentId)
       .then((data) => {
-        setEvents(data.slice().reverse().slice(0, 5));
+        setEvents(data.slice().reverse());
         setLastEvent(data.length > 0 ? data[data.length - 1] : null);
       })
       .catch(() => {
@@ -41,7 +54,7 @@ export default function ShipmentTrackingPage() {
       });
 
     const token = localStorage.getItem("access_token");
-    const socket = io("http://localhost:3001", {
+    const socket = io(process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001", {
       auth: {
         token
       }
@@ -49,7 +62,15 @@ export default function ShipmentTrackingPage() {
 
     const handleShipmentUpdate = (payload: ShipmentUpdate) => {
       setLastEvent(payload);
-      setEvents((prev) => [payload, ...prev].slice(0, 5));
+      setEvents((prev) => [payload, ...prev]);
+      setShipment((prev) =>
+        prev
+          ? {
+              ...prev,
+              status: payload.status
+            }
+          : prev
+      );
     };
 
     socket.emit("joinShipmentRoom", { shipmentId });
@@ -63,15 +84,18 @@ export default function ShipmentTrackingPage() {
   }, [router, shipmentId]);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#f7f7f4] to-[#e7ece8] p-8">
-      <h1 className="text-3xl font-bold">Shipment Tracking</h1>
-      <p className="mt-2 text-gray-700">Real-time updates will appear below:</p>
+    <main className="user-experience px-4 py-6 md:px-8 md:py-8">
+      <div className="user-page-shell">
+        <TrackingHero shipment={shipment} />
 
-      <FeedbackAlert feedback={feedback} />
+        <FeedbackAlert feedback={feedback} />
 
-      <div className="mt-6 grid gap-6 md:grid-cols-2">
-        <CurrentStatusCard lastEvent={lastEvent} />
-        <TrackingHistoryList events={events} />
+        <div className="mt-6 grid gap-6 xl:grid-cols-2">
+          <ShipmentSummaryCard shipment={shipment} />
+          <ShipmentProgressCard shipment={shipment} events={events} />
+          <CurrentStatusCard lastEvent={lastEvent} />
+          <TrackingHistoryList events={events} />
+        </div>
       </div>
     </main>
   );
