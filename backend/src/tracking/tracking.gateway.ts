@@ -87,6 +87,8 @@ export class TrackingGateway implements OnGatewayConnection {
     status: string;
     locationLat?: number;
     locationLng?: number;
+    note?: string;
+    createdAt?: Date;
   }) {
     this.server
       .to(this.shipmentRoom(payload.shipmentId))
