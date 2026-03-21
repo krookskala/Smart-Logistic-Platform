@@ -11,8 +11,11 @@ export type TrackingFormState = {
 };
 
 export type ShipmentUpdate = {
+  id?: string;
   shipmentId: string;
   status: string;
   locationLat?: number;
   locationLng?: number;
+  note?: string | null;
+  createdAt?: string;
 };
