@@ -3,6 +3,21 @@ import { ShipmentUpdate } from "./types";
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
 
+function buildQueryString(
+  params: Record<string, string | number | undefined | null>
+) {
+  const searchParams = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && value !== "") {
+      searchParams.set(key, String(value));
+    }
+  }
+
+  const query = searchParams.toString();
+  return query ? `?${query}` : "";
+}
+
 function getAuthHeaders(): Record<string, string> {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
@@ -30,7 +45,35 @@ function clearAuthAndRedirectToLogin() {
   window.location.href = "/login";
 }
 
-function handleFetchError(res: Response, message: string): never {
+async function handleFetchError(res: Response, fallbackMessage: string): Promise<never> {
+  let message = fallbackMessage;
+
+  try {
+    const contentType = res.headers.get("content-type") ?? "";
+
+    if (contentType.includes("application/json")) {
+      const payload = (await res.json()) as {
+        message?: string | string[];
+        error?: string;
+      };
+
+      if (Array.isArray(payload.message) && payload.message.length > 0) {
+        message = payload.message.join(", ");
+      } else if (typeof payload.message === "string" && payload.message) {
+        message = payload.message;
+      } else if (typeof payload.error === "string" && payload.error) {
+        message = payload.error;
+      }
+    } else {
+      const text = await res.text();
+      if (text) {
+        message = text;
+      }
+    }
+  } catch {
+    // Keep the fallback message if the response body can't be parsed.
+  }
+
   if (res.status === 401 || res.status === 403) {
     clearAuthAndRedirectToLogin();
   }
@@ -48,12 +91,33 @@ export type Shipment = {
   createdById: string;
   assignedCourierId?: string | null;
   createdAt: string;
+  createdBy?: {
+    id: string;
+    email: string;
+    role: string;
+  };
+  assignedCourier?: {
+    id: string;
+    userId: string;
+    vehicleType?: string | null;
+    availability?: boolean;
+    user: {
+      id: string;
+      email: string;
+      role: string;
+    };
+  } | null;
 };
 
 export type Courier = {
   id: string;
   userId: string;
   vehicleType?: string | null;
+  availability?: boolean;
+  createdAt?: string;
+  _count?: {
+    shipments: number;
+  };
   user: {
     id: string;
     email: string;
@@ -73,6 +137,32 @@ export type AdminUser = {
     vehicleType?: string | null;
     availability?: boolean;
     createdAt: string;
+    _count?: {
+      shipments: number;
+    };
+  } | null;
+};
+
+export type ShipmentFilters = {
+  search?: string;
+  status?: string;
+  assignedCourierId?: string;
+  sortBy?: "createdAt" | "title" | "status";
+  sortOrder?: "asc" | "desc";
+};
+
+export type AuditLog = {
+  id: string;
+  actorUserId?: string | null;
+  actionType: string;
+  targetType: string;
+  targetId?: string | null;
+  metadata?: Record<string, unknown> | null;
+  createdAt: string;
+  actor?: {
+    id: string;
+    email: string;
+    role: string;
   } | null;
 };
 
@@ -84,7 +174,7 @@ export async function fetchUsers(): Promise<AdminUser[]> {
   });
 
   if (!res.ok) {
-    handleFetchError(res, "Failed to fetch users");
+    await handleFetchError(res, "Failed to fetch users");
   }
 
   return res.json();
@@ -101,7 +191,7 @@ export async function updateUserRole(userId: string, role: string) {
   });
 
   if (!res.ok) {
-    handleFetchError(res, "Failed to update user role");
+    await handleFetchError(res, "Failed to update user role");
   }
 
   return res.json();
@@ -115,7 +205,38 @@ export async function fetchCouriers(): Promise<Courier[]> {
   });
 
   if (!res.ok) {
-    handleFetchError(res, "Failed to fetch couriers");
+    await handleFetchError(res, "Failed to fetch couriers");
+  }
+
+  return res.json();
+}
+
+export async function updateMyCourierAvailability(availability: boolean) {
+  const res = await fetch(`${API_BASE_URL}/couriers/me/availability`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify({ availability })
+  });
+
+  if (!res.ok) {
+    await handleFetchError(res, "Failed to update courier availability");
+  }
+
+  return res.json();
+}
+
+export async function fetchMyCourier(): Promise<Courier | null> {
+  const res = await fetch(`${API_BASE_URL}/couriers/me`, {
+    headers: {
+      ...getAuthHeaders()
+    }
+  });
+
+  if (!res.ok) {
+    await handleFetchError(res, "Failed to fetch courier profile");
   }
 
   return res.json();
@@ -138,7 +259,7 @@ export async function assignCourierToShipment(
   );
 
   if (!res.ok) {
-    handleFetchError(res, "Failed to assign courier");
+    await handleFetchError(res, "Failed to assign courier");
   }
 
   return res.json();
@@ -151,15 +272,33 @@ export type CreateShipmentInput = {
   deliveryAddress: string;
 };
 
-export async function fetchShipments(): Promise<Shipment[]> {
-  const res = await fetch(`${API_BASE_URL}/shipments`, {
+export async function fetchShipments(
+  filters: ShipmentFilters = {}
+): Promise<Shipment[]> {
+  const res = await fetch(
+    `${API_BASE_URL}/shipments${buildQueryString(filters)}`,
+    {
+      headers: {
+        ...getAuthHeaders()
+      }
+    }
+  );
+
+  if (!res.ok) {
+    await handleFetchError(res, "Failed to fetch shipments");
+  }
+  return res.json();
+}
+
+export async function fetchShipmentById(shipmentId: string): Promise<Shipment> {
+  const res = await fetch(`${API_BASE_URL}/shipments/${shipmentId}`, {
     headers: {
       ...getAuthHeaders()
     }
   });
 
   if (!res.ok) {
-    handleFetchError(res, "Failed to fetch shipments");
+    await handleFetchError(res, "Failed to fetch shipment details");
   }
   return res.json();
 }
@@ -174,7 +313,42 @@ export async function createShipment(
   });
 
   if (!res.ok) {
-    handleFetchError(res, "Failed to create shipment");
+    await handleFetchError(res, "Failed to create shipment");
+  }
+
+  return res.json();
+}
+
+export async function updateShipment(
+  shipmentId: string,
+  input: Partial<CreateShipmentInput>
+): Promise<Shipment> {
+  const res = await fetch(`${API_BASE_URL}/shipments/${shipmentId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(input)
+  });
+
+  if (!res.ok) {
+    await handleFetchError(res, "Failed to update shipment");
+  }
+
+  return res.json();
+}
+
+export async function cancelShipment(shipmentId: string): Promise<Shipment> {
+  const res = await fetch(`${API_BASE_URL}/shipments/${shipmentId}/cancel`, {
+    method: "POST",
+    headers: {
+      ...getAuthHeaders()
+    }
+  });
+
+  if (!res.ok) {
+    await handleFetchError(res, "Failed to cancel shipment");
   }
 
   return res.json();
@@ -193,7 +367,7 @@ export async function registerUser(input: RegisterInput) {
   });
 
   if (!res.ok) {
-    handleFetchError(res, "Failed to register");
+    await handleFetchError(res, "Failed to register");
   }
 
   return res.json();
@@ -212,7 +386,7 @@ export async function loginUser(input: LoginInput) {
   });
 
   if (!res.ok) {
-    handleFetchError(res, "Failed to login");
+    await handleFetchError(res, "Failed to login");
   }
 
   return res.json();
@@ -221,9 +395,11 @@ export async function loginUser(input: LoginInput) {
 export type ShipmentMetrics = {
   total: number;
   delivered: number;
+  pickedUp?: number;
   inTransit: number;
   assigned: number;
   created: number;
+  cancelled?: number;
 };
 
 export async function fetchShipmentMetrics(): Promise<ShipmentMetrics> {
@@ -234,7 +410,7 @@ export async function fetchShipmentMetrics(): Promise<ShipmentMetrics> {
   });
 
   if (!res.ok) {
-    handleFetchError(res, "Failed to fetch shipment metrics");
+    await handleFetchError(res, "Failed to fetch shipment metrics");
   }
 
   return res.json();
@@ -261,7 +437,7 @@ export async function createTrackingEvent(
   });
 
   if (!res.ok) {
-    handleFetchError(res, "Failed to create tracking event");
+    await handleFetchError(res, "Failed to create tracking event");
   }
 
   return res.json();
@@ -277,7 +453,30 @@ export async function fetchTrackingEvents(
   });
 
   if (!res.ok) {
-    handleFetchError(res, "Failed to fetch tracking events");
+    await handleFetchError(res, "Failed to fetch tracking events");
+  }
+
+  return res.json();
+}
+
+export async function fetchAuditLogs(params: {
+  actionType?: string;
+  targetType?: string;
+  actorUserId?: string;
+  targetId?: string;
+  sortOrder?: "asc" | "desc";
+} = {}): Promise<AuditLog[]> {
+  const res = await fetch(
+    `${API_BASE_URL}/audit-logs${buildQueryString(params)}`,
+    {
+      headers: {
+        ...getAuthHeaders()
+      }
+    }
+  );
+
+  if (!res.ok) {
+    await handleFetchError(res, "Failed to fetch audit logs");
   }
 
   return res.json();
