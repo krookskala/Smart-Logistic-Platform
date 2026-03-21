@@ -1,9 +1,15 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
 import { AccessControlService } from "../auth/access-control.service";
 import { CreateTrackingDto } from "./dto/create-tracking.dto";
 import { TrackingGateway } from "./tracking.gateway";
+
+const ALLOWED_STATUS_TRANSITIONS: Record<string, string[]> = {
+  ASSIGNED: ["PICKED_UP"],
+  PICKED_UP: ["IN_TRANSIT"],
+  IN_TRANSIT: ["DELIVERED"]
+};
 
 @Injectable()
 export class TrackingService {
@@ -19,7 +25,23 @@ export class TrackingService {
     dto: CreateTrackingDto,
     user: { userId: string; role: string }
   ) {
-    await this.accessControlService.assertShipmentAccess(shipmentId, user);
+    const shipment = await this.accessControlService.assertShipmentAccess(
+      shipmentId,
+      user
+    );
+
+    const allowedNextStatuses = ALLOWED_STATUS_TRANSITIONS[shipment.status] ?? [];
+    if (!allowedNextStatuses.includes(dto.status)) {
+      throw new BadRequestException(
+        `Invalid status transition from ${shipment.status} to ${dto.status}.`
+      );
+    }
+
+    if (dto.status === "DELIVERED" && !dto.note?.trim()) {
+      throw new BadRequestException(
+        "A delivery note is required when marking a shipment as DELIVERED."
+      );
+    }
 
     const tracking = await this.prisma.trackingEvent.create({
       data: {
@@ -53,7 +75,9 @@ export class TrackingService {
       shipmentId,
       status: dto.status,
       locationLat: dto.locationLat,
-      locationLng: dto.locationLng
+      locationLng: dto.locationLng,
+      note: dto.note,
+      createdAt: tracking.createdAt
     });
 
     return tracking;
