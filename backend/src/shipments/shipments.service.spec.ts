@@ -1,4 +1,4 @@
-import { NotFoundException } from "@nestjs/common";
+import { BadRequestException, NotFoundException } from "@nestjs/common";
 import { ShipmentsService } from "./shipments.service";
 import { UpdateShipmentDto } from "./dto/update-shipment.dto";
 
@@ -20,10 +20,34 @@ describe("ShipmentsService", () => {
       accessControlService
     );
 
-    const result = await service.findAll({ userId: "u1", role: "ADMIN" });
+    const result = await service.findAll(
+      { userId: "u1", role: "ADMIN" },
+      {}
+    );
 
     expect(prisma.shipment.findMany).toHaveBeenCalledWith({
-      orderBy: { createdAt: "desc" }
+      where: {},
+      orderBy: { createdAt: "desc" },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            email: true,
+            role: true
+          }
+        },
+        assignedCourier: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                role: true
+              }
+            }
+          }
+        }
+      }
     });
     expect(result).toEqual([{ id: "s1" }]);
   });
@@ -48,14 +72,34 @@ describe("ShipmentsService", () => {
       accessControlService
     );
 
-    await service.findAll({ userId: "u1", role: "COURIER" });
+    await service.findAll({ userId: "u1", role: "COURIER" }, {});
 
     expect(prisma.courier.findUnique).toHaveBeenCalledWith({
       where: { userId: "u1" }
     });
     expect(prisma.shipment.findMany).toHaveBeenCalledWith({
       where: { assignedCourierId: "c1" },
-      orderBy: { createdAt: "desc" }
+      orderBy: { createdAt: "desc" },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            email: true,
+            role: true
+          }
+        },
+        assignedCourier: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                role: true
+              }
+            }
+          }
+        }
+      }
     });
   });
 
@@ -79,14 +123,16 @@ describe("ShipmentsService", () => {
       accessControlService
     );
 
-    const result = await service.findAll({ userId: "u1", role: "COURIER" });
+    const result = await service.findAll({ userId: "u1", role: "COURIER" }, {});
     expect(result).toEqual([]);
     expect(prisma.shipment.findMany).not.toHaveBeenCalled();
   });
 
   it("findOne allows USER to access their own shipment", async () => {
     const prisma = {
-      shipment: {}
+      shipment: {
+        findUnique: jest.fn().mockResolvedValue({ id: "s1", createdById: "u1" })
+      }
     } as any;
 
     const auditService = { log: jest.fn().mockResolvedValue(undefined) } as any;
@@ -130,7 +176,13 @@ describe("ShipmentsService", () => {
 
   it("findOne allows COURIER to access assigned shipment", async () => {
     const prisma = {
-      shipment: {}
+      shipment: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: "s1",
+          createdById: "u2",
+          assignedCourierId: "c1"
+        })
+      }
     } as any;
 
     const auditService = { log: jest.fn().mockResolvedValue(undefined) } as any;
@@ -161,7 +213,7 @@ describe("ShipmentsService", () => {
   it("update updates shipments for ADMIN", async () => {
     const prisma = {
       shipment: {
-        findUnique: jest.fn().mockResolvedValue({ id: "s1" }),
+        findUnique: jest.fn().mockResolvedValue({ id: "s1", status: "CREATED" }),
         update: jest.fn().mockResolvedValue({ id: "s1" })
       }
     } as any;
@@ -197,11 +249,13 @@ describe("ShipmentsService", () => {
   it("assignCourier sets assignedCourierId and status ASSIGNED", async () => {
     const prisma = {
       shipment: {
-        findUnique: jest.fn().mockResolvedValue({ id: "s1" }),
+        findUnique: jest.fn().mockResolvedValue({ id: "s1", status: "CREATED" }),
         update: jest.fn().mockResolvedValue({ id: "s1" })
       },
       courier: {
-        findUnique: jest.fn().mockResolvedValue({ id: "c1", userId: "u1" })
+        findUnique: jest
+          .fn()
+          .mockResolvedValue({ id: "c1", userId: "u1", availability: true })
       }
     } as any;
 
@@ -246,5 +300,109 @@ describe("ShipmentsService", () => {
     await expect(
       service.assignCourier("s1", "missing", "admin")
     ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it("update rejects edits when shipment is not in CREATED status", async () => {
+    const prisma = {
+      shipment: {
+        findUnique: jest.fn().mockResolvedValue({ id: "s1", status: "ASSIGNED" }),
+        update: jest.fn()
+      }
+    } as any;
+
+    const auditService = { log: jest.fn().mockResolvedValue(undefined) } as any;
+    const accessControlService = {
+      assertShipmentAccess: jest.fn().mockResolvedValue({ id: "s1" })
+    } as any;
+    const service = new ShipmentsService(
+      prisma,
+      auditService,
+      accessControlService
+    );
+
+    await expect(
+      service.update(
+        "s1",
+        {
+          title: "Updated"
+        } as any,
+        { userId: "u1", role: "USER" } as any
+      )
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it("cancel clears assignment and marks shipment as CANCELLED", async () => {
+    const prisma = {
+      shipment: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: "s1",
+          status: "ASSIGNED",
+          createdById: "u1",
+          assignedCourierId: "c1"
+        }),
+        update: jest
+          .fn()
+          .mockResolvedValue({ id: "s1", status: "CANCELLED", assignedCourierId: null })
+      }
+    } as any;
+
+    const auditService = { log: jest.fn().mockResolvedValue(undefined) } as any;
+    const accessControlService = {
+      assertShipmentAccess: jest.fn().mockResolvedValue({ id: "s1" })
+    } as any;
+    const service = new ShipmentsService(
+      prisma,
+      auditService,
+      accessControlService
+    );
+
+    const result = await service.cancel("s1", {
+      userId: "u1",
+      role: "USER"
+    } as any);
+
+    expect(prisma.shipment.update).toHaveBeenCalledWith({
+      where: { id: "s1" },
+      data: {
+        status: "CANCELLED",
+        assignedCourierId: null
+      }
+    });
+    expect(result).toEqual({
+      id: "s1",
+      status: "CANCELLED",
+      assignedCourierId: null
+    });
+  });
+
+  it("cancel rejects non-cancellable shipment statuses", async () => {
+    const prisma = {
+      shipment: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: "s1",
+          status: "IN_TRANSIT",
+          createdById: "u1",
+          assignedCourierId: "c1"
+        }),
+        update: jest.fn()
+      }
+    } as any;
+
+    const auditService = { log: jest.fn().mockResolvedValue(undefined) } as any;
+    const accessControlService = {
+      assertShipmentAccess: jest.fn().mockResolvedValue({ id: "s1" })
+    } as any;
+    const service = new ShipmentsService(
+      prisma,
+      auditService,
+      accessControlService
+    );
+
+    await expect(
+      service.cancel("s1", {
+        userId: "u1",
+        role: "USER"
+      } as any)
+    ).rejects.toBeInstanceOf(BadRequestException);
   });
 });
