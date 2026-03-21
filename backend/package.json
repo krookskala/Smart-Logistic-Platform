@@ -14,8 +14,8 @@
         "test": "jest",
         "test:watch": "jest --watch",
         "typecheck": "tsc --noEmit -p tsconfig.json",
-        "prisma:generate": "prisma generate",
-        "prisma:migrate": "prisma migrate dev",
+        "prisma:generate": "node scripts/run-prisma-with-root-env.js generate",
+        "prisma:migrate": "node scripts/run-prisma-with-root-env.js migrate dev",
         "prisma:seed": "prisma db seed"
     },
     "prisma": {
