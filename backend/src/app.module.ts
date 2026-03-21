@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
-import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
+import { seconds, ThrottlerModule } from "@nestjs/throttler";
 import { HealthController } from "./health/health.controller";
 import { PrismaModule } from "./prisma/prisma.module";
 import { AuthModule } from "./auth/auth.module";
@@ -9,13 +9,14 @@ import { CouriersModule } from "./couriers/couriers.module";
 import { TrackingModule } from "./tracking/tracking.module";
 import { UsersModule } from "./users/users.module";
 import { AuditModule } from "./audit/audit.module";
+import { HttpThrottlerGuard } from "./common/guards/http-throttler.guard";
 
 @Module({
   imports: [
     // Basic, in-memory rate limiting to reduce abuse on auth-heavy endpoints.
     ThrottlerModule.forRoot([
       {
-        ttl: 60,
+        ttl: seconds(60),
         limit: 20
       }
     ]),
@@ -29,9 +30,8 @@ import { AuditModule } from "./audit/audit.module";
   ],
   controllers: [HealthController],
   providers: [
-    // @nestjs/throttler doesn't automatically bind the guard as a provider;
-    // bind it via APP_GUARD so DI can resolve its dependencies.
-    { provide: APP_GUARD, useClass: ThrottlerGuard }
+    // Restrict global throttling to HTTP requests so websocket tracking stays stable.
+    { provide: APP_GUARD, useClass: HttpThrottlerGuard }
   ]
 })
 export class AppModule {}
