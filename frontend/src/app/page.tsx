@@ -1,29 +1,63 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { FrontendAuthUser, getStoredAuthUser } from "../lib/auth";
+import LandingFeatureStrip from "../components/landing/landing-feature-strip";
+import LandingHero from "../components/landing/landing-hero";
+import LandingRoleCards from "../components/landing/landing-role-cards";
+import LandingTechGrid from "../components/landing/landing-tech-grid";
+import LandingWorkflowBand from "../components/landing/landing-workflow-band";
+
+function getRoleDestination(user: FrontendAuthUser | null) {
+  if (!user) {
+    return {
+      href: "/login",
+      label: "Get Started"
+    };
+  }
+
+  if (user.role === "ADMIN") {
+    return {
+      href: "/admin",
+      label: "Open Admin Panel"
+    };
+  }
+
+  if (user.role === "COURIER") {
+    return {
+      href: "/courier",
+      label: "Open Courier Workspace"
+    };
+  }
+
+  return {
+    href: "/user",
+    label: "Open My Shipments"
+  };
+}
+
 export default function HomePage() {
+  const [user, setUser] = useState<FrontendAuthUser | null>(null);
+
+  useEffect(() => {
+    setUser(getStoredAuthUser());
+  }, []);
+
+  const primaryCta = useMemo(() => getRoleDestination(user), [user]);
+
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#f7f7f4] to-[#e7ece8]">
-      <section className="mx-auto max-w-4xl px-6 py-16">
-        <p className="text-sm uppercase tracking-[0.2em] text-[#6b6b6b]">
-          Smart Logistics Platform
-        </p>
-        <h1 className="mt-4 text-4xl font-bold leading-tight text-[#141414]">
-          Real-time shipment tracking for modern delivery teams
-        </h1>
-        <p className="mt-4 max-w-2xl text-lg text-[#3c3c3c]">
-          This is the starter UI. We will add auth, shipments, courier
-          dashboards, and live tracking next.
-        </p>
-        <div className="mt-8 flex gap-3">
-          <span className="rounded-full border border-[#141414] px-4 py-2 text-sm">
-            Next.js + TypeScript
-          </span>
-          <span className="rounded-full border border-[#141414] px-4 py-2 text-sm">
-            NestJS + Prisma
-          </span>
-          <span className="rounded-full border border-[#141414] px-4 py-2 text-sm">
-            Postgres + Socket.io
-          </span>
-        </div>
-      </section>
+    <main className="landing-experience px-6 py-8 md:px-8 md:py-10">
+      <div className="landing-page-shell space-y-6">
+        <LandingHero
+          primaryHref={primaryCta.href}
+          primaryLabel={primaryCta.label}
+          secondaryHref="#roles"
+        />
+        <LandingFeatureStrip />
+        <LandingRoleCards />
+        <LandingWorkflowBand />
+        <LandingTechGrid />
+      </div>
     </main>
   );
 }
