@@ -1,10 +1,14 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
 import { AccessControlService } from "../auth/access-control.service";
 import { CreateShipmentDto } from "./dto/create-shipment.dto";
 import { UpdateShipmentDto } from "./dto/update-shipment.dto";
 import { AuthUser } from "../auth/auth-user.type";
+import { ListShipmentsQueryDto } from "./dto/list-shipments-query.dto";
+
+const CANCELLABLE_SHIPMENT_STATUSES = new Set(["CREATED", "ASSIGNED"]);
+const EDITABLE_SHIPMENT_STATUSES = new Set(["CREATED"]);
 
 @Injectable()
 export class ShipmentsService {
@@ -32,6 +36,72 @@ export class ShipmentsService {
     });
   }
 
+  private getShipmentInclude() {
+    return {
+      createdBy: {
+        select: {
+          id: true,
+          email: true,
+          role: true
+        }
+      },
+      assignedCourier: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              role: true
+            }
+          }
+        }
+      }
+    } as const;
+  }
+
+  private buildAdminShipmentWhere(query: ListShipmentsQueryDto): PrismaLikeWhereInput {
+    const andFilters: PrismaLikeWhereInput[] = [];
+
+    if (query.search) {
+      andFilters.push({
+        OR: [
+          {
+            title: {
+              contains: query.search,
+              mode: "insensitive"
+            }
+          },
+          {
+            pickupAddress: {
+              contains: query.search,
+              mode: "insensitive"
+            }
+          },
+          {
+            deliveryAddress: {
+              contains: query.search,
+              mode: "insensitive"
+            }
+          }
+        ]
+      });
+    }
+
+    if (query.status) {
+      andFilters.push({
+        status: query.status
+      });
+    }
+
+    if (query.assignedCourierId) {
+      andFilters.push({
+        assignedCourierId: query.assignedCourierId
+      });
+    }
+
+    return andFilters.length > 0 ? { AND: andFilters } : {};
+  }
+
   async create(dto: CreateShipmentDto, createdById: string) {
     return this.prisma.shipment.create({
       data: {
@@ -44,10 +114,14 @@ export class ShipmentsService {
     });
   }
 
-  async findAll(user: { userId: string; role: string }) {
+  async findAll(user: { userId: string; role: string }, query: ListShipmentsQueryDto) {
     if (user.role === "ADMIN") {
       return this.prisma.shipment.findMany({
-        orderBy: { createdAt: "desc" }
+        where: this.buildAdminShipmentWhere(query) as never,
+        orderBy: {
+          [query.sortBy ?? "createdAt"]: query.sortOrder ?? "desc"
+        } as never,
+        include: this.getShipmentInclude()
       });
     }
 
@@ -62,7 +136,8 @@ export class ShipmentsService {
         where: {
           assignedCourierId: courier.id
         },
-        orderBy: { createdAt: "desc" }
+        orderBy: { createdAt: "desc" },
+        include: this.getShipmentInclude()
       });
     }
 
@@ -70,16 +145,28 @@ export class ShipmentsService {
       where: {
         createdById: user.userId
       },
-      orderBy: { createdAt: "desc" }
+      orderBy: { createdAt: "desc" },
+      include: this.getShipmentInclude()
     });
   }
 
   async findOne(id: string, user: { userId: string; role: string }) {
-    return this.accessControlService.assertShipmentAccess(id, user);
+    await this.accessControlService.assertShipmentAccess(id, user);
+
+    return this.prisma.shipment.findUnique({
+      where: { id },
+      include: this.getShipmentInclude()
+    });
   }
 
   async update(id: string, dto: UpdateShipmentDto, user: AuthUser) {
     const shipment = await this.getShipmentOrThrow(id);
+
+    if (!EDITABLE_SHIPMENT_STATUSES.has(shipment.status)) {
+      throw new BadRequestException(
+        "Only shipments in CREATED status can be edited."
+      );
+    }
 
     if (user.role === "ADMIN") {
       return this.prisma.shipment.update({
@@ -124,6 +211,16 @@ export class ShipmentsService {
       throw new NotFoundException("Courier Not Found");
     }
 
+    if (!courier.availability) {
+      throw new BadRequestException("Selected courier is unavailable.");
+    }
+
+    if (!["CREATED", "ASSIGNED"].includes(shipment.status)) {
+      throw new BadRequestException(
+        "Courier assignment is only allowed for CREATED or ASSIGNED shipments."
+      );
+    }
+
     const updatedShipment = await this.prisma.shipment.update({
       where: { id: shipmentId },
       data: {
@@ -146,6 +243,41 @@ export class ShipmentsService {
     return updatedShipment;
   }
 
+  async cancel(id: string, user: AuthUser) {
+    const shipment = await this.getShipmentOrThrow(id);
+
+    if (user.role !== "ADMIN" && shipment.createdById !== user.userId) {
+      throw new NotFoundException("Shipment Not Found");
+    }
+
+    if (!CANCELLABLE_SHIPMENT_STATUSES.has(shipment.status)) {
+      throw new BadRequestException(
+        "Only CREATED or ASSIGNED shipments can be cancelled."
+      );
+    }
+
+    const cancelledShipment = await this.prisma.shipment.update({
+      where: { id },
+      data: {
+        status: "CANCELLED" as never,
+        assignedCourierId: null
+      }
+    });
+
+    await this.auditService.log({
+      actorUserId: user.userId,
+      actionType: "SHIPMENT_CANCELLED",
+      targetType: "Shipment",
+      targetId: id,
+      metadata: {
+        previousStatus: shipment.status,
+        previousAssignedCourierId: shipment.assignedCourierId
+      }
+    });
+
+    return cancelledShipment;
+  }
+
   async getMetrics() {
     const total = await this.prisma.shipment.count();
     const delivered = await this.prisma.shipment.count({
@@ -154,19 +286,37 @@ export class ShipmentsService {
     const inTransit = await this.prisma.shipment.count({
       where: { status: "IN_TRANSIT" }
     });
+    const pickedUp = await this.prisma.shipment.count({
+      where: { status: "PICKED_UP" }
+    });
     const assigned = await this.prisma.shipment.count({
       where: { status: "ASSIGNED" }
     });
     const created = await this.prisma.shipment.count({
       where: { status: "CREATED" }
     });
+    const cancelled = await this.prisma.shipment.count({
+      where: { status: "CANCELLED" as never }
+    });
 
     return {
       total,
       delivered,
+      pickedUp,
       inTransit,
       assigned,
-      created
+      created,
+      cancelled
     };
   }
 }
+
+type PrismaLikeWhereInput = {
+  AND?: PrismaLikeWhereInput[];
+  OR?: PrismaLikeWhereInput[];
+  title?: { contains: string; mode: "insensitive" };
+  pickupAddress?: { contains: string; mode: "insensitive" };
+  deliveryAddress?: { contains: string; mode: "insensitive" };
+  status?: string;
+  assignedCourierId?: string;
+};
