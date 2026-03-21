@@ -1,23 +1,30 @@
+"use client";
+
+import { useEffect } from "react";
 import { FeedbackState } from "../lib/types";
+import { useToast } from "./toast-provider";
 
 type FeedbackAlertProps = {
   feedback: FeedbackState;
 };
 
 export default function FeedbackAlert({ feedback }: FeedbackAlertProps) {
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (!feedback) {
+      return;
+    }
+
+    showToast({
+      type: feedback.type,
+      message: feedback.message
+    });
+  }, [feedback, showToast]);
+
   if (!feedback) {
     return null;
   }
 
-  return (
-    <div
-      className={`mt-4 rounded-xl border px-4 py-3 text-sm ${
-        feedback.type === "success"
-          ? "border-green-200 bg-green-50 text-green-800"
-          : "border-red-200 bg-red-50 text-red-800"
-      }`}
-    >
-      {feedback.message}
-    </div>
-  );
+  return null;
 }
