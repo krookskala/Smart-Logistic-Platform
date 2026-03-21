@@ -14,7 +14,15 @@ export class UsersService {
     return this.prisma.user.findMany({
       orderBy: { createdAt: "desc" },
       include: {
-        courier: true
+        courier: {
+          include: {
+            _count: {
+              select: {
+                shipments: true
+              }
+            }
+          }
+        }
       }
     });
   }
@@ -23,7 +31,15 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: {
-        courier: true
+        courier: {
+          include: {
+            _count: {
+              select: {
+                shipments: true
+              }
+            }
+          }
+        }
       }
     });
 
@@ -59,7 +75,15 @@ export class UsersService {
     return this.prisma.user.findUnique({
       where: { id: updatedUser.id },
       include: {
-        courier: true
+        courier: {
+          include: {
+            _count: {
+              select: {
+                shipments: true
+              }
+            }
+          }
+        }
       }
     });
   }
