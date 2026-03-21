@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { loginUser } from "../../lib/api";
 import { useRouter } from "next/navigation";
+import AuthShell from "../../components/auth/auth-shell";
+import AuthSidePanel from "../../components/auth/auth-side-panel";
+import { useToast } from "../../components/toast-provider";
 
 export default function LoginPage() {
   const [form, setForm] = useState({
@@ -11,83 +14,133 @@ export default function LoginPage() {
     password: ""
   });
   const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState("");
+  const [redirecting, setRedirecting] = useState(false);
   const router = useRouter();
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
-    setMessage("");
 
     try {
       const result = await loginUser(form);
-      setMessage("Login successful.");
       localStorage.setItem("access_token", result.access_token);
       localStorage.setItem("auth_user", JSON.stringify(result.user));
 
+      let destination = "/user";
+
       if (result.user.role === "ADMIN") {
-        router.push("/admin");
+        destination = "/admin";
       } else if (result.user.role === "COURIER") {
-        router.push("/courier");
-      } else {
-        router.push("/user");
+        destination = "/courier";
       }
 
-      setForm({ email: "", password: "" });
-    } catch {
-      setMessage("Login failed.");
+      setRedirecting(true);
+      showToast({
+        type: "success",
+        message: "Signed in successfully. Opening your workspace now."
+      });
+
+      redirectTimerRef.current = setTimeout(() => {
+        router.push(destination);
+      }, 1600);
+    } catch (error) {
+      showToast({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Sign-in could not be completed. Please try again."
+      });
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#f7f7f4] to-[#e7ece8] p-8">
-      <div className="mx-auto max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-bold">Login</h1>
-        <p className="mt-2 text-sm text-gray-600">Access your dashboard.</p>
-
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+    <>
+      <AuthShell
+        formAccent="sky"
+        sidePanel={
+          <AuthSidePanel
+            eyebrow="Secure Access"
+            title="Return to the workspace that keeps your logistics operations moving."
+            description="Sign in to access the Smart Logistics environment assigned to your role, review current activity, and continue from the operational context already in progress."
+            highlights={[
+              "Role-aware access for customers, couriers, and administrators",
+              "Immediate visibility into active shipments and delivery progress",
+              "A cleaner interface for coordinated logistics work"
+            ]}
+            accent="sky"
+          />
+        }
+        formPanel={
           <div>
-            <label className="text-sm font-medium">Email</label>
-            <input
-              className="mt-1 w-full rounded-lg border border-gray-300 p-2"
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              required
-            />
+            <p className="landing-label">Workspace Access</p>
+            <h2 className="landing-display mt-4 text-4xl font-semibold text-slate-950">
+              Sign in
+            </h2>
+            <p className="landing-muted mt-3 text-base leading-8">
+              Use your account credentials to open the Smart Logistics workspace
+              assigned to your responsibilities.
+            </p>
+
+            <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+              <div>
+                <label className="text-sm font-medium text-slate-700">Email</label>
+                <input
+                  className="auth-input mt-2"
+                  type="email"
+                  placeholder="you@company.com"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  required
+                  disabled={submitting || redirecting}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-slate-700">
+                  Password
+                </label>
+                <input
+                  className="auth-input mt-2"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  required
+                  disabled={submitting || redirecting}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={submitting || redirecting}
+                className="w-full rounded-full bg-slate-950 px-5 py-3 text-base font-semibold text-white transition disabled:opacity-60"
+              >
+                {submitting ? "Signing In..." : redirecting ? "Redirecting..." : "Sign In"}
+              </button>
+            </form>
+
+            <p className="mt-6 text-sm text-slate-600">
+              New to Smart Logistics?{" "}
+              <Link href="/register" className="font-semibold text-slate-950 underline">
+                Create your account
+              </Link>
+            </p>
           </div>
-
-          <div>
-            <label className="text-sm font-medium">Password</label>
-            <input
-              className="mt-1 w-full rounded-lg border border-gray-300 p-2"
-              type="password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full rounded-lg bg-black px-4 py-2 text-white disabled:opacity-60"
-          >
-            {submitting ? "Logging in..." : "Login"}
-          </button>
-        </form>
-
-        <p className="mt-4 text-sm text-gray-600">
-          Don&apos;t have an account?{" "}
-          <Link href="/register" className="text-blue-700 underline">
-            Register here
-          </Link>
-        </p>
-
-        {message && <p className="mt-4 text-sm text-gray-700">{message}</p>}
-      </div>
-    </main>
+        }
+      />
+    </>
   );
 }
