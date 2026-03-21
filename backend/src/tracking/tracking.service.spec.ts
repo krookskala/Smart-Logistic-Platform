@@ -1,4 +1,4 @@
-import { NotFoundException } from "@nestjs/common";
+import { BadRequestException, NotFoundException } from "@nestjs/common";
 import { TrackingGateway } from "./tracking.gateway";
 import { TrackingService } from "./tracking.service";
 import { CreateTrackingDto } from "./dto/create-tracking.dto";
@@ -7,17 +7,13 @@ describe("TrackingService", () => {
   it("create allows COURIER to create tracking event only for assigned shipments", async () => {
     const prisma = {
       shipment: {
-        findUnique: jest.fn().mockResolvedValue({
-          id: "s1",
-          assignedCourierId: "c1"
-        }),
         update: jest.fn().mockResolvedValue({})
       },
-      courier: {
-        findUnique: jest.fn().mockResolvedValue({ id: "c1", userId: "u1" })
-      },
       trackingEvent: {
-        create: jest.fn().mockResolvedValue({ id: "t1" })
+        create: jest.fn().mockResolvedValue({
+          id: "t1",
+          createdAt: new Date("2026-03-21T12:00:00.000Z")
+        })
       }
     } as any;
 
@@ -27,7 +23,10 @@ describe("TrackingService", () => {
 
     const auditService = { log: jest.fn().mockResolvedValue(undefined) } as any;
     const accessControlService = {
-      assertShipmentAccess: jest.fn().mockResolvedValue({})
+      assertShipmentAccess: jest.fn().mockResolvedValue({
+        id: "s1",
+        status: "PICKED_UP"
+      })
     } as any;
     const service = new TrackingService(
       prisma,
@@ -60,21 +59,16 @@ describe("TrackingService", () => {
       shipmentId: "s1",
       status: dto.status,
       locationLat: dto.locationLat,
-      locationLng: dto.locationLng
+      locationLng: dto.locationLng,
+      note: dto.note,
+      createdAt: new Date("2026-03-21T12:00:00.000Z")
     });
   });
 
   it("create throws NotFoundException when COURIER is not assigned", async () => {
     const prisma = {
       shipment: {
-        findUnique: jest.fn().mockResolvedValue({
-          id: "s1",
-          assignedCourierId: "c2"
-        }),
         update: jest.fn()
-      },
-      courier: {
-        findUnique: jest.fn().mockResolvedValue({ id: "c1", userId: "u1" })
       },
       trackingEvent: {
         create: jest.fn()
@@ -106,6 +100,80 @@ describe("TrackingService", () => {
       service.create("s1", dto, { userId: "u1", role: "COURIER" })
     ).rejects.toBeInstanceOf(NotFoundException);
     expect(prisma.trackingEvent.create).not.toHaveBeenCalled();
+  });
+
+  it("create rejects invalid status transitions", async () => {
+    const prisma = {
+      shipment: {
+        update: jest.fn()
+      },
+      trackingEvent: {
+        create: jest.fn()
+      }
+    } as any;
+
+    const gateway: TrackingGateway = {
+      emitShipmentUpdate: jest.fn()
+    } as any;
+
+    const auditService = { log: jest.fn().mockResolvedValue(undefined) } as any;
+    const accessControlService = {
+      assertShipmentAccess: jest.fn().mockResolvedValue({
+        id: "s1",
+        status: "ASSIGNED"
+      })
+    } as any;
+    const service = new TrackingService(
+      prisma,
+      gateway,
+      auditService,
+      accessControlService
+    );
+
+    await expect(
+      service.create(
+        "s1",
+        { status: "DELIVERED", note: "done" } as any,
+        { userId: "u1", role: "COURIER" }
+      )
+    ).rejects.toThrow("Invalid status transition");
+  });
+
+  it("create requires a note when marking shipment as DELIVERED", async () => {
+    const prisma = {
+      shipment: {
+        update: jest.fn()
+      },
+      trackingEvent: {
+        create: jest.fn()
+      }
+    } as any;
+
+    const gateway: TrackingGateway = {
+      emitShipmentUpdate: jest.fn()
+    } as any;
+
+    const auditService = { log: jest.fn().mockResolvedValue(undefined) } as any;
+    const accessControlService = {
+      assertShipmentAccess: jest.fn().mockResolvedValue({
+        id: "s1",
+        status: "IN_TRANSIT"
+      })
+    } as any;
+    const service = new TrackingService(
+      prisma,
+      gateway,
+      auditService,
+      accessControlService
+    );
+
+    await expect(
+      service.create(
+        "s1",
+        { status: "DELIVERED" } as any,
+        { userId: "u1", role: "COURIER" }
+      )
+    ).rejects.toBeInstanceOf(BadRequestException);
   });
 
   it("findByShipment returns tracking events for ADMIN", async () => {
