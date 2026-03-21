@@ -1,3 +1,4 @@
+import "../src/env/load-env";
 import { PrismaClient, Role, ShipmentStatus } from "@prisma/client";
 import * as bcrypt from "bcrypt";
 
