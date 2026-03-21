@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import AuthNav from "../components/auth-nav";
 import RoleNav from "../components/role-nav";
+import ToastProvider from "../components/toast-provider";
+import ThemeProvider from "../components/theme-provider";
+import ThemeToggle from "../components/theme-toggle";
 
 export const metadata: Metadata = {
   title: "Smart Logistics Platform",
@@ -17,20 +20,25 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <header className="border-b border-black/10 bg-white/80 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-            <Link href="/" className="text-lg font-bold tracking-[0.08em]">
-              Smart Logistics
-            </Link>
+        <ThemeProvider>
+          <ToastProvider>
+            <header className="site-header border-b border-black/10 bg-white/80 backdrop-blur">
+              <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+                <Link href="/" className="site-brand text-lg font-bold tracking-[0.06em]">
+                  Smart Logistics
+                </Link>
 
-            <nav className="flex flex-wrap items-center gap-4 text-sm">
-              <RoleNav />
-              <AuthNav />
-            </nav>
-          </div>
-        </header>
+                <nav className="site-nav flex flex-wrap items-center gap-3 text-sm text-stone-700 md:gap-5">
+                  <ThemeToggle />
+                  <RoleNav />
+                  <AuthNav />
+                </nav>
+              </div>
+            </header>
 
-        {children}
+            {children}
+          </ToastProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
