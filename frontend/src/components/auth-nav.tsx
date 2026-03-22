@@ -31,7 +31,19 @@ export default function AuthNav() {
       return;
     }
 
+    const refreshToken = localStorage.getItem("refresh_token");
+    if (refreshToken) {
+      const apiBase =
+        process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+      fetch(`${apiBase}/auth/logout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: refreshToken })
+      }).catch(() => {});
+    }
+
     localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
     localStorage.removeItem("auth_user");
     setLoggedIn(false);
     setLoggingOut(true);
