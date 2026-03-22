@@ -28,32 +28,20 @@ export default function CollapsibleCreateShipmentPanel({
   onSubmit
 }: CollapsibleCreateShipmentPanelProps) {
   return (
-    <section className="overflow-hidden rounded-[28px] border border-stone-200 bg-white/78 shadow-[0_18px_40px_rgba(51,47,38,0.06)] backdrop-blur">
-      <div className="flex flex-col gap-4 px-5 py-5 md:px-6">
-        <div>
-          <p className="user-label">New Shipment</p>
-          <h2 className="user-display mt-2 text-2xl font-semibold text-stone-900">
-            Create a new shipment request
-          </h2>
-          <p className="user-muted mt-2 text-sm leading-6">
-            Open the form only when you need it, then submit a shipment with the
-            pickup and delivery details required for dispatch.
-          </p>
-        </div>
-
-        <div className="flex justify-start">
-          <button
-            type="button"
-            onClick={onToggle}
-            className="rounded-full bg-stone-900 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-stone-900/10 transition hover:bg-stone-800"
-          >
-            {isOpen ? "Hide Form" : "Create Shipment"}
-          </button>
-        </div>
+    <section className="overflow-hidden rounded-xl border border-stone-200 bg-white/78 shadow-sm backdrop-blur">
+      <div className="flex items-center justify-between px-4 py-3">
+        <p className="text-sm font-semibold text-stone-700">New Shipment</p>
+        <button
+          type="button"
+          onClick={onToggle}
+          className="user-btn-primary px-3 py-1.5 text-xs"
+        >
+          {isOpen ? "Hide" : "Create"}
+        </button>
       </div>
 
       {isOpen ? (
-        <div className="border-t border-stone-200/80 px-4 pb-4 md:px-5 md:pb-5">
+        <div className="border-t border-stone-200/80 px-4 pb-4">
           <CreateShipmentForm
             form={form}
             submitting={submitting}
