@@ -10,6 +10,15 @@ export type TrackingFormState = {
   locationLng: string;
 };
 
+export type AuditLogFilters = {
+  actionType: string;
+  targetType: string;
+  actorUserId: string;
+  sortOrder: "asc" | "desc";
+};
+
+export type AdminTabKey = "overview" | "shipments" | "users" | "audit";
+
 export type ShipmentUpdate = {
   id?: string;
   shipmentId: string;
