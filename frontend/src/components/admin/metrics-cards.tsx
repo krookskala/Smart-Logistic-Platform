@@ -7,7 +7,7 @@ type AdminMetricsCardsProps = {
 export default function AdminMetricsCards({ metrics }: AdminMetricsCardsProps) {
   const cards = [
     {
-      label: "Total Shipments",
+      label: "Total",
       value: metrics.total,
       tone: "from-slate-100 to-slate-50 text-slate-950 border-slate-200"
     },
@@ -34,14 +34,16 @@ export default function AdminMetricsCards({ metrics }: AdminMetricsCardsProps) {
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
       {cards.map((card) => (
         <div
           key={card.label}
-          className={`rounded-3xl border bg-gradient-to-br p-5 shadow-sm ${card.tone}`}
+          className={`rounded-xl border bg-gradient-to-br p-4 ${card.tone}`}
         >
-          <p className="admin-label text-current/70">{card.label}</p>
-          <p className="mt-4 text-4xl font-semibold tracking-tight">
+          <p className="text-xs font-bold uppercase tracking-widest opacity-70">
+            {card.label}
+          </p>
+          <p className="mt-2 text-3xl font-semibold tracking-tight">
             {card.value}
           </p>
         </div>
