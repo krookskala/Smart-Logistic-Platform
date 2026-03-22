@@ -42,7 +42,9 @@ export default function AuthSidePanel({
       </div>
 
       <div className="mt-auto pt-8">
-        <div className={`landing-chip ${chipClass}`}>Smart Logistics Platform</div>
+        <div className={`landing-chip ${chipClass}`}>
+          Smart Logistics Platform
+        </div>
       </div>
     </div>
   );
