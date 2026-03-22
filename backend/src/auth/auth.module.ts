@@ -5,6 +5,7 @@ import { JwtModule } from "@nestjs/jwt";
 import { JwtStrategy } from "./jwt.strategy";
 import { PassportModule } from "@nestjs/passport";
 import { jwtConstants } from "./constants";
+import { AuditModule } from "../audit/audit.module";
 
 @Module({
   imports: [
@@ -16,7 +17,8 @@ import { jwtConstants } from "./constants";
         issuer: jwtConstants.issuer,
         audience: jwtConstants.audience
       }
-    })
+    }),
+    AuditModule
   ],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController]
