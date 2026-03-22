@@ -1,11 +1,5 @@
 import { AdminUser, AuditLog } from "../../lib/api";
-
-type AuditLogFilters = {
-  actionType: string;
-  targetType: string;
-  actorUserId: string;
-  sortOrder: "asc" | "desc";
-};
+import { AuditLogFilters } from "../../lib/types";
 
 type AuditLogPanelProps = {
   logs: AuditLog[];
@@ -21,31 +15,17 @@ export default function AuditLogPanel({
   onChange
 }: AuditLogPanelProps) {
   return (
-    <div className="admin-surface p-6 md:p-7">
-      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="admin-label">Audit Console</p>
-          <h2 className="mt-3 text-2xl font-semibold text-slate-950">
-            Trace operational actions and platform changes
-          </h2>
-          <p className="mt-2 text-sm text-slate-600">
-            Filter by actor, target, or action type to reconstruct what changed
-            across shipments, courier operations, and access control.
-          </p>
-        </div>
-        <div className="admin-chip">{logs.length} matching events</div>
-      </div>
-
-      <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+    <div>
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <input
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900"
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none"
           placeholder="Filter by action type"
           value={filters.actionType}
           onChange={(e) => onChange("actionType", e.target.value)}
         />
 
         <select
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900"
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none"
           value={filters.targetType}
           onChange={(e) => onChange("targetType", e.target.value)}
         >
@@ -56,7 +36,7 @@ export default function AuditLogPanel({
         </select>
 
         <select
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900"
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none"
           value={filters.actorUserId}
           onChange={(e) => onChange("actorUserId", e.target.value)}
         >
@@ -69,7 +49,7 @@ export default function AuditLogPanel({
         </select>
 
         <select
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900"
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none"
           value={filters.sortOrder}
           onChange={(e) =>
             onChange(
@@ -83,33 +63,34 @@ export default function AuditLogPanel({
         </select>
       </div>
 
+      <p className="mt-3 text-xs text-slate-500">
+        {logs.length} matching events
+      </p>
+
       {logs.length === 0 ? (
-        <p className="mt-4 text-sm text-slate-500">
-          No audit events matched the current filters.
-        </p>
+        <p className="mt-4 text-sm text-slate-500">No events found.</p>
       ) : (
-        <div className="mt-6 space-y-3">
+        <div className="mt-3 space-y-2">
           {logs.map((log) => (
-            <div key={log.id} className="admin-panel p-5">
-              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                <div>
-                  <p className="admin-label">{log.targetType}</p>
-                  <p className="mt-2 text-base font-semibold text-slate-950">
+            <div key={log.id} className="admin-panel p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-950">
                     {log.actionType}
                   </p>
-                  <p className="mt-1 text-sm text-slate-600">
-                    Actor: {log.actor?.email ?? "System"} · Target:{" "}
-                    {log.targetId ?? "-"}
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    {log.targetType} · {log.actor?.email ?? "System"} ·{" "}
+                    {log.targetId ? `Target: ${log.targetId.slice(0, 8)}` : ""}
                   </p>
                 </div>
 
-                <p className="text-xs text-slate-500">
+                <span className="shrink-0 text-xs text-slate-400">
                   {new Date(log.createdAt).toLocaleString()}
-                </p>
+                </span>
               </div>
 
               {log.metadata ? (
-                <pre className="mt-4 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-4 text-xs text-slate-700">
+                <pre className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-700">
                   {JSON.stringify(log.metadata, null, 2)}
                 </pre>
               ) : null}
