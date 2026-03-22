@@ -2,11 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { FrontendAuthUser, getStoredAuthUser } from "../lib/auth";
-import LandingFeatureStrip from "../components/landing/landing-feature-strip";
 import LandingHero from "../components/landing/landing-hero";
-import LandingRoleCards from "../components/landing/landing-role-cards";
-import LandingTechGrid from "../components/landing/landing-tech-grid";
-import LandingWorkflowBand from "../components/landing/landing-workflow-band";
+import LandingFeatures from "../components/landing/landing-role-cards";
+import LandingCtaFooter from "../components/landing/landing-cta-footer";
 
 function getRoleDestination(user: FrontendAuthUser | null) {
   if (!user) {
@@ -51,12 +49,13 @@ export default function HomePage() {
         <LandingHero
           primaryHref={primaryCta.href}
           primaryLabel={primaryCta.label}
-          secondaryHref="#roles"
+          secondaryHref="#features"
         />
-        <LandingFeatureStrip />
-        <LandingRoleCards />
-        <LandingWorkflowBand />
-        <LandingTechGrid />
+        <LandingFeatures />
+        <LandingCtaFooter
+          primaryHref={primaryCta.href}
+          primaryLabel={primaryCta.label}
+        />
       </div>
     </main>
   );
