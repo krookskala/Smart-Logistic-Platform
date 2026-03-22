@@ -8,22 +8,26 @@ export default function ShipmentSearchBar({
   onChange
 }: ShipmentSearchBarProps) {
   return (
-    <div>
-      <label className="user-label block" htmlFor="shipment-search">
-        Search Shipments
-      </label>
-      <div className="mt-3 flex items-center gap-3 rounded-2xl border border-stone-200 bg-white/80 px-4 py-3">
-        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-stone-400">
-          Search
-        </span>
-        <input
-          id="shipment-search"
-          className="w-full bg-transparent text-sm text-stone-800 outline-none placeholder:text-stone-400"
-          placeholder="Search by title, pickup, or delivery address"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+    <div className="flex items-center gap-2 rounded-xl border border-stone-200 bg-white/80 px-3 py-2.5">
+      <svg
+        className="h-4 w-4 text-stone-400"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={2}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
         />
-      </div>
+      </svg>
+      <input
+        className="w-full bg-transparent text-sm text-stone-800 outline-none placeholder:text-stone-400"
+        placeholder="Search shipments..."
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
     </div>
   );
 }
