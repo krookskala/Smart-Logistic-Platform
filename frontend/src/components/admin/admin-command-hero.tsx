@@ -15,8 +15,8 @@ export default function AdminCommandHero({
         <div>
           <p className="admin-label">Operations Command Center</p>
           <h1 className="admin-display mt-4 max-w-3xl text-4xl font-semibold leading-tight md:text-5xl">
-            Keep shipment flow, dispatch coverage, and account operations aligned
-            from one operational dashboard.
+            Keep shipment flow, dispatch coverage, and account operations
+            aligned from one operational dashboard.
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-8 text-slate-600 md:text-lg">
             Review network activity, resolve assignment gaps, manage access
