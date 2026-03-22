@@ -68,9 +68,9 @@ export default function AdminDashboardPage() {
   });
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
-  const [selectedUserAuditLogs, setSelectedUserAuditLogs] = useState<AuditLog[]>(
-    []
-  );
+  const [selectedUserAuditLogs, setSelectedUserAuditLogs] = useState<
+    AuditLog[]
+  >([]);
   const [activeTab, setActiveTab] = useState<AdminTabKey>("overview");
 
   useEffect(() => {
@@ -99,8 +99,8 @@ export default function AdminDashboardPage() {
       return;
     }
 
-    fetchShipments(shipmentFilters)
-      .then((data) => setShipments(data))
+    fetchShipments({ ...shipmentFilters, limit: 100 })
+      .then((res) => setShipments(res.data))
       .catch((error) => {
         setFeedback({
           type: "error",
@@ -178,9 +178,7 @@ export default function AdminDashboardPage() {
     setAuditFilters((prev) => ({
       ...prev,
       [field]:
-        field === "sortOrder"
-          ? (value as AuditLogFilters["sortOrder"])
-          : value
+        field === "sortOrder" ? (value as AuditLogFilters["sortOrder"]) : value
     }));
   }
 
@@ -197,8 +195,11 @@ export default function AdminDashboardPage() {
     try {
       await assignCourierToShipment(shipmentId, courierId);
 
-      const refreshedShipments = await fetchShipments(shipmentFilters);
-      setShipments(refreshedShipments);
+      const refreshedShipments = await fetchShipments({
+        ...shipmentFilters,
+        limit: 100
+      });
+      setShipments(refreshedShipments.data);
 
       const refreshedAuditLogs = await fetchAuditLogs(auditFilters);
       setAuditLogs(refreshedAuditLogs);
@@ -255,9 +256,7 @@ export default function AdminDashboardPage() {
       setFeedback({
         type: "error",
         message:
-          error instanceof Error
-            ? error.message
-            : "Failed to update user role."
+          error instanceof Error ? error.message : "Failed to update user role."
       });
     } finally {
       setUpdatingUserId(null);
