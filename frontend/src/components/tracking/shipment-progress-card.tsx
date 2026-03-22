@@ -23,93 +23,53 @@ function getStatusIndex(status?: string) {
 }
 
 export default function ShipmentProgressCard({
-  shipment,
-  events
+  shipment
 }: ShipmentProgressCardProps) {
   const currentStatus = shipment?.status;
   const currentStepIndex = getStatusIndex(currentStatus);
   const isCancelled = currentStatus === "CANCELLED";
 
   return (
-    <div className="user-surface p-6 md:p-7">
-      <p className="user-label">Delivery Progress</p>
-      <h2 className="user-display mt-3 text-3xl font-semibold text-stone-900">
-        Stage-by-stage movement
-      </h2>
+    <div className="user-surface p-5 md:p-6">
+      <h2 className="text-base font-bold text-stone-900">Progress</h2>
 
       {!shipment ? (
-        <p className="mt-4 text-sm text-stone-500">Loading progress...</p>
+        <p className="mt-3 text-sm text-stone-500">Loading...</p>
       ) : isCancelled ? (
-        <div className="mt-6 rounded-[24px] border border-red-200 bg-red-50 p-5">
+        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4">
           <p className="text-sm font-semibold text-red-800">
             Shipment Cancelled
           </p>
-          <p className="mt-2 text-sm leading-6 text-red-700">
+          <p className="mt-1 text-sm text-red-700">
             This delivery was cancelled before completion.
           </p>
         </div>
       ) : (
-        <div className="mt-6 space-y-5">
-          <div className="grid gap-3">
-            {STATUS_STEPS.map((step, index) => {
-              const isComplete = currentStepIndex >= index;
-              const isCurrent = currentStatus === step;
+        <div className="mt-4 space-y-2">
+          {STATUS_STEPS.map((step, index) => {
+            const isComplete = currentStepIndex >= index;
+            const isCurrent = currentStatus === step;
 
-              return (
-                <div
-                  key={step}
-                  className={`rounded-[22px] border p-4 transition ${
-                    isCurrent
-                      ? "border-stone-900 bg-stone-900 text-white shadow-lg shadow-stone-900/10"
-                      : isComplete
-                        ? "border-emerald-200 bg-emerald-50"
-                        : "border-stone-200 bg-stone-50/80"
-                  }`}
+            return (
+              <div
+                key={step}
+                className={`flex items-center justify-between rounded-xl border px-4 py-2.5 text-sm transition ${
+                  isCurrent
+                    ? "progress-step-current border-transparent text-white"
+                    : isComplete
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                      : "border-stone-200 bg-stone-50/80 text-stone-500"
+                }`}
+              >
+                <span className="font-semibold">{step.replace("_", " ")}</span>
+                <span
+                  className={`text-xs ${isCurrent ? "text-slate-300" : ""}`}
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <p
-                      className={`text-sm font-semibold uppercase tracking-[0.12em] ${
-                        isCurrent
-                          ? "text-white"
-                          : isComplete
-                            ? "text-emerald-800"
-                            : "text-stone-600"
-                      }`}
-                    >
-                      {step.replace("_", " ")}
-                    </p>
-                    <span
-                      className={`text-xs ${
-                        isCurrent ? "text-stone-200" : "text-stone-500"
-                      }`}
-                    >
-                      {isCurrent
-                        ? "Current"
-                        : isComplete
-                          ? "Completed"
-                          : "Pending"}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="user-panel p-4">
-              <p className="user-label">Updates Received</p>
-              <p className="mt-3 text-3xl font-semibold text-stone-900">
-                {events.length}
-              </p>
-            </div>
-
-            <div className="user-panel p-4">
-              <p className="user-label">Current Stage</p>
-              <p className="mt-3 text-3xl font-semibold text-stone-900">
-                {shipment.status.replace("_", " ")}
-              </p>
-            </div>
-          </div>
+                  {isCurrent ? "Current" : isComplete ? "Done" : "Pending"}
+                </span>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
