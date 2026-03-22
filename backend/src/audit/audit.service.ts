@@ -24,9 +24,7 @@ function toJsonObject(
     : undefined;
 }
 
-function toJsonValue(
-  value: unknown
-): Prisma.InputJsonValue | null | undefined {
+function toJsonValue(value: unknown): Prisma.InputJsonValue | null | undefined {
   if (value === undefined) {
     return undefined;
   }
@@ -41,7 +39,9 @@ function toJsonValue(
   }
 
   if (Array.isArray(value)) {
-    return value.map((item) => toJsonValue(item) ?? null) as Prisma.InputJsonArray;
+    return value.map(
+      (item) => toJsonValue(item) ?? null
+    ) as Prisma.InputJsonArray;
   }
 
   if (typeof value === "object") {
