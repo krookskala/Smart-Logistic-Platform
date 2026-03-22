@@ -30,7 +30,8 @@ export class TrackingService {
       user
     );
 
-    const allowedNextStatuses = ALLOWED_STATUS_TRANSITIONS[shipment.status] ?? [];
+    const allowedNextStatuses =
+      ALLOWED_STATUS_TRANSITIONS[shipment.status] ?? [];
     if (!allowedNextStatuses.includes(dto.status)) {
       throw new BadRequestException(
         `Invalid status transition from ${shipment.status} to ${dto.status}.`
