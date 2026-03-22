@@ -20,8 +20,8 @@ export default function ShipmentFiltersToolbar({
             Narrow the dispatch queue
           </h2>
           <p className="mt-1 text-sm text-slate-600">
-            Focus shipment work by search term, current state, assigned
-            courier, and ordering priority.
+            Focus shipment work by search term, current state, assigned courier,
+            and ordering priority.
           </p>
         </div>
       </div>
@@ -66,7 +66,10 @@ export default function ShipmentFiltersToolbar({
           className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900"
           value={filters.sortBy ?? "createdAt"}
           onChange={(e) =>
-            onChange("sortBy", e.target.value as ShipmentFilters["sortBy"] & string)
+            onChange(
+              "sortBy",
+              e.target.value as ShipmentFilters["sortBy"] & string
+            )
           }
         >
           <option value="createdAt">Sort by createdAt</option>
