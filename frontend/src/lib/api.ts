@@ -40,12 +40,74 @@ function clearAuthAndRedirectToLogin() {
     return;
   }
 
+  const refreshToken = localStorage.getItem("refresh_token");
+  if (refreshToken) {
+    fetch(`${API_BASE_URL}/auth/logout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken })
+    }).catch(() => {});
+  }
+
   localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
   localStorage.removeItem("auth_user");
   window.location.href = "/login";
 }
 
-async function handleFetchError(res: Response, fallbackMessage: string): Promise<never> {
+let refreshPromise: Promise<boolean> | null = null;
+
+async function tryRefreshToken(): Promise<boolean> {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const refreshToken = localStorage.getItem("refresh_token");
+  if (!refreshToken) {
+    return false;
+  }
+
+  // Deduplicate concurrent refresh attempts
+  if (refreshPromise) {
+    return refreshPromise;
+  }
+
+  refreshPromise = (async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: refreshToken })
+      });
+
+      if (!res.ok) {
+        return false;
+      }
+
+      const data = (await res.json()) as {
+        access_token: string;
+        refresh_token: string;
+        user: { id: string; email: string; role: string };
+      };
+
+      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem("refresh_token", data.refresh_token);
+      localStorage.setItem("auth_user", JSON.stringify(data.user));
+      return true;
+    } catch {
+      return false;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+}
+
+async function handleFetchError(
+  res: Response,
+  fallbackMessage: string
+): Promise<never> {
   let message = fallbackMessage;
 
   try {
@@ -75,7 +137,10 @@ async function handleFetchError(res: Response, fallbackMessage: string): Promise
   }
 
   if (res.status === 401 || res.status === 403) {
-    clearAuthAndRedirectToLogin();
+    const refreshed = await tryRefreshToken();
+    if (!refreshed) {
+      clearAuthAndRedirectToLogin();
+    }
   }
 
   throw new Error(message);
@@ -149,6 +214,8 @@ export type ShipmentFilters = {
   assignedCourierId?: string;
   sortBy?: "createdAt" | "title" | "status";
   sortOrder?: "asc" | "desc";
+  page?: number;
+  limit?: number;
 };
 
 export type AuditLog = {
@@ -272,9 +339,19 @@ export type CreateShipmentInput = {
   deliveryAddress: string;
 };
 
+export type PaginatedResponse<T> = {
+  data: T[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+};
+
 export async function fetchShipments(
   filters: ShipmentFilters = {}
-): Promise<Shipment[]> {
+): Promise<PaginatedResponse<Shipment>> {
   const res = await fetch(
     `${API_BASE_URL}/shipments${buildQueryString(filters)}`,
     {
@@ -459,13 +536,15 @@ export async function fetchTrackingEvents(
   return res.json();
 }
 
-export async function fetchAuditLogs(params: {
-  actionType?: string;
-  targetType?: string;
-  actorUserId?: string;
-  targetId?: string;
-  sortOrder?: "asc" | "desc";
-} = {}): Promise<AuditLog[]> {
+export async function fetchAuditLogs(
+  params: {
+    actionType?: string;
+    targetType?: string;
+    actorUserId?: string;
+    targetId?: string;
+    sortOrder?: "asc" | "desc";
+  } = {}
+): Promise<AuditLog[]> {
   const res = await fetch(
     `${API_BASE_URL}/audit-logs${buildQueryString(params)}`,
     {
