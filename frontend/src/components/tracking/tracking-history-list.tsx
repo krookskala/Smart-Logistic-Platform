@@ -23,7 +23,10 @@ export default function TrackingHistoryList({
       ) : (
         <ul className="mt-6 space-y-4 text-sm text-stone-700">
           {events.map((event, index) => (
-            <li key={event.id ?? `${event.shipmentId}-${index}`} className="relative pl-8">
+            <li
+              key={event.id ?? `${event.shipmentId}-${index}`}
+              className="relative pl-8"
+            >
               <span className="absolute left-[0.4rem] top-3 h-3 w-3 rounded-full bg-stone-900"></span>
               {index !== events.length - 1 ? (
                 <span className="absolute left-[0.74rem] top-6 h-[calc(100%+0.75rem)] w-px bg-stone-200"></span>
@@ -43,8 +46,12 @@ export default function TrackingHistoryList({
                   </div>
 
                   <div className="flex flex-wrap gap-2 text-xs text-stone-500">
-                    <span className="user-chip">Lat {event.locationLat ?? "-"}</span>
-                    <span className="user-chip">Lng {event.locationLng ?? "-"}</span>
+                    <span className="user-chip">
+                      Lat {event.locationLat ?? "-"}
+                    </span>
+                    <span className="user-chip">
+                      Lng {event.locationLng ?? "-"}
+                    </span>
                   </div>
                 </div>
 
