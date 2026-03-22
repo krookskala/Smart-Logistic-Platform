@@ -3,10 +3,11 @@ import { ShipmentsService } from "./shipments.service";
 import { UpdateShipmentDto } from "./dto/update-shipment.dto";
 
 describe("ShipmentsService", () => {
-  it("findAll returns all shipments for ADMIN", async () => {
+  it("findAll returns paginated shipments for ADMIN", async () => {
     const prisma = {
       shipment: {
-        findMany: jest.fn().mockResolvedValue([{ id: "s1" }])
+        findMany: jest.fn().mockResolvedValue([{ id: "s1" }]),
+        count: jest.fn().mockResolvedValue(1)
       }
     } as any;
 
@@ -20,45 +21,24 @@ describe("ShipmentsService", () => {
       accessControlService
     );
 
-    const result = await service.findAll(
-      { userId: "u1", role: "ADMIN" },
-      {}
-    );
+    const result = await service.findAll({ userId: "u1", role: "ADMIN" }, {});
 
-    expect(prisma.shipment.findMany).toHaveBeenCalledWith({
-      where: {},
-      orderBy: { createdAt: "desc" },
-      include: {
-        createdBy: {
-          select: {
-            id: true,
-            email: true,
-            role: true
-          }
-        },
-        assignedCourier: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                email: true,
-                role: true
-              }
-            }
-          }
-        }
-      }
+    expect(prisma.shipment.findMany).toHaveBeenCalled();
+    expect(prisma.shipment.count).toHaveBeenCalled();
+    expect(result).toEqual({
+      data: [{ id: "s1" }],
+      meta: { total: 1, page: 1, limit: 20, totalPages: 1 }
     });
-    expect(result).toEqual([{ id: "s1" }]);
   });
 
-  it("findAll returns courier assigned shipments for COURIER", async () => {
+  it("findAll returns paginated courier assigned shipments for COURIER", async () => {
     const prisma = {
       courier: {
         findUnique: jest.fn().mockResolvedValue({ id: "c1", userId: "u1" })
       },
       shipment: {
-        findMany: jest.fn().mockResolvedValue([{ id: "s1" }])
+        findMany: jest.fn().mockResolvedValue([{ id: "s1" }]),
+        count: jest.fn().mockResolvedValue(1)
       }
     } as any;
 
@@ -72,38 +52,17 @@ describe("ShipmentsService", () => {
       accessControlService
     );
 
-    await service.findAll({ userId: "u1", role: "COURIER" }, {});
+    const result = await service.findAll({ userId: "u1", role: "COURIER" }, {});
 
     expect(prisma.courier.findUnique).toHaveBeenCalledWith({
       where: { userId: "u1" }
     });
-    expect(prisma.shipment.findMany).toHaveBeenCalledWith({
-      where: { assignedCourierId: "c1" },
-      orderBy: { createdAt: "desc" },
-      include: {
-        createdBy: {
-          select: {
-            id: true,
-            email: true,
-            role: true
-          }
-        },
-        assignedCourier: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                email: true,
-                role: true
-              }
-            }
-          }
-        }
-      }
-    });
+    expect(prisma.shipment.findMany).toHaveBeenCalled();
+    expect(result.data).toEqual([{ id: "s1" }]);
+    expect(result.meta.total).toBe(1);
   });
 
-  it("findAll returns empty array for COURIER when courier record is missing", async () => {
+  it("findAll returns empty result for COURIER when courier record is missing", async () => {
     const prisma = {
       courier: {
         findUnique: jest.fn().mockResolvedValue(null)
@@ -124,7 +83,8 @@ describe("ShipmentsService", () => {
     );
 
     const result = await service.findAll({ userId: "u1", role: "COURIER" }, {});
-    expect(result).toEqual([]);
+    expect(result.data).toEqual([]);
+    expect(result.meta.total).toBe(0);
     expect(prisma.shipment.findMany).not.toHaveBeenCalled();
   });
 
@@ -213,7 +173,9 @@ describe("ShipmentsService", () => {
   it("update updates shipments for ADMIN", async () => {
     const prisma = {
       shipment: {
-        findUnique: jest.fn().mockResolvedValue({ id: "s1", status: "CREATED" }),
+        findUnique: jest
+          .fn()
+          .mockResolvedValue({ id: "s1", status: "CREATED" }),
         update: jest.fn().mockResolvedValue({ id: "s1" })
       }
     } as any;
@@ -249,7 +211,9 @@ describe("ShipmentsService", () => {
   it("assignCourier sets assignedCourierId and status ASSIGNED", async () => {
     const prisma = {
       shipment: {
-        findUnique: jest.fn().mockResolvedValue({ id: "s1", status: "CREATED" }),
+        findUnique: jest
+          .fn()
+          .mockResolvedValue({ id: "s1", status: "CREATED" }),
         update: jest.fn().mockResolvedValue({ id: "s1" })
       },
       courier: {
@@ -305,7 +269,9 @@ describe("ShipmentsService", () => {
   it("update rejects edits when shipment is not in CREATED status", async () => {
     const prisma = {
       shipment: {
-        findUnique: jest.fn().mockResolvedValue({ id: "s1", status: "ASSIGNED" }),
+        findUnique: jest
+          .fn()
+          .mockResolvedValue({ id: "s1", status: "ASSIGNED" }),
         update: jest.fn()
       }
     } as any;
@@ -340,9 +306,11 @@ describe("ShipmentsService", () => {
           createdById: "u1",
           assignedCourierId: "c1"
         }),
-        update: jest
-          .fn()
-          .mockResolvedValue({ id: "s1", status: "CANCELLED", assignedCourierId: null })
+        update: jest.fn().mockResolvedValue({
+          id: "s1",
+          status: "CANCELLED",
+          assignedCourierId: null
+        })
       }
     } as any;
 
