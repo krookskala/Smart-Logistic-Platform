@@ -14,6 +14,7 @@ import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Roles } from "../auth/roles.decorator";
 import { RolesGuard } from "../auth/roles.guard";
 import { UpdateMyAvailabilityDto } from "./dto/update-my-availability.dto";
+import { UpdateCourierProfileDto } from "./dto/update-courier-profile.dto";
 import { AuthUser } from "../auth/auth-user.type";
 
 @ApiTags("Couriers")
@@ -51,5 +52,22 @@ export class CouriersController {
     @Request() req: { user: AuthUser }
   ) {
     return this.couriersService.updateMyAvailability(req.user.userId, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("COURIER")
+  @Patch("me/profile")
+  updateMyProfile(
+    @Body() dto: UpdateCourierProfileDto,
+    @Request() req: { user: AuthUser }
+  ) {
+    return this.couriersService.updateMyProfile(req.user.userId, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("ADMIN")
+  @Get("performance")
+  getPerformance() {
+    return this.couriersService.getPerformance();
   }
 }
