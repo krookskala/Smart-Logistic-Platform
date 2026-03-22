@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
+import { CacheModule } from "@nestjs/cache-manager";
 import { seconds, ThrottlerModule } from "@nestjs/throttler";
 import { HealthController } from "./health/health.controller";
 import { PrismaModule } from "./prisma/prisma.module";
@@ -13,13 +14,18 @@ import { HttpThrottlerGuard } from "./common/guards/http-throttler.guard";
 
 @Module({
   imports: [
-    // Basic, in-memory rate limiting to reduce abuse on auth-heavy endpoints.
     ThrottlerModule.forRoot([
       {
+        name: "short",
         ttl: seconds(60),
-        limit: 20
+        limit: 60
       }
     ]),
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 30000,
+      max: 100
+    }),
     PrismaModule,
     AuthModule,
     ShipmentsModule,
