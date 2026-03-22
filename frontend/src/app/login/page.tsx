@@ -34,6 +34,7 @@ export default function LoginPage() {
     try {
       const result = await loginUser(form);
       localStorage.setItem("access_token", result.access_token);
+      localStorage.setItem("refresh_token", result.refresh_token);
       localStorage.setItem("auth_user", JSON.stringify(result.user));
 
       let destination = "/user";
@@ -96,7 +97,9 @@ export default function LoginPage() {
 
             <form onSubmit={handleSubmit} className="mt-8 space-y-5">
               <div>
-                <label className="text-sm font-medium text-slate-700">Email</label>
+                <label className="text-sm font-medium text-slate-700">
+                  Email
+                </label>
                 <input
                   className="auth-input mt-2"
                   type="email"
@@ -117,7 +120,9 @@ export default function LoginPage() {
                   type="password"
                   placeholder="Enter your password"
                   value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, password: e.target.value })
+                  }
                   required
                   disabled={submitting || redirecting}
                 />
@@ -128,13 +133,20 @@ export default function LoginPage() {
                 disabled={submitting || redirecting}
                 className="w-full rounded-full bg-slate-950 px-5 py-3 text-base font-semibold text-white transition disabled:opacity-60"
               >
-                {submitting ? "Signing In..." : redirecting ? "Redirecting..." : "Sign In"}
+                {submitting
+                  ? "Signing In..."
+                  : redirecting
+                    ? "Redirecting..."
+                    : "Sign In"}
               </button>
             </form>
 
             <p className="mt-6 text-sm text-slate-600">
               New to Smart Logistics?{" "}
-              <Link href="/register" className="font-semibold text-slate-950 underline">
+              <Link
+                href="/register"
+                className="font-semibold text-slate-950 underline"
+              >
                 Create your account
               </Link>
             </p>
