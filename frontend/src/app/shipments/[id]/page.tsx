@@ -7,7 +7,11 @@ import CurrentStatusCard from "../../../components/tracking/current-status-card"
 import TrackingHistoryList from "../../../components/tracking/tracking-history-list";
 import FeedbackAlert from "../../../components/feedback-alert";
 import { FeedbackState, ShipmentUpdate } from "../../../lib/types";
-import { fetchShipmentById, fetchTrackingEvents, Shipment } from "../../../lib/api";
+import {
+  fetchShipmentById,
+  fetchTrackingEvents,
+  Shipment
+} from "../../../lib/api";
 import { redirectToLoginIfUnauthorized } from "../../../lib/route-guards";
 import ShipmentSummaryCard from "../../../components/tracking/shipment-summary-card";
 import ShipmentProgressCard from "../../../components/tracking/shipment-progress-card";
@@ -54,11 +58,14 @@ export default function ShipmentTrackingPage() {
       });
 
     const token = localStorage.getItem("access_token");
-    const socket = io(process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001", {
-      auth: {
-        token
+    const socket = io(
+      process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001",
+      {
+        auth: {
+          token
+        }
       }
-    });
+    );
 
     const handleShipmentUpdate = (payload: ShipmentUpdate) => {
       setLastEvent(payload);
