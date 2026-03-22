@@ -28,12 +28,15 @@ export default function UserDashboardPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackState>(null);
-  const [editingShipmentId, setEditingShipmentId] = useState<string | null>(null);
-  const [savingShipmentId, setSavingShipmentId] = useState<string | null>(null);
-  const [cancellingShipmentId, setCancellingShipmentId] = useState<string | null>(
+  const [editingShipmentId, setEditingShipmentId] = useState<string | null>(
     null
   );
-  const [selectedSegment, setSelectedSegment] = useState<ShipmentSegment>("ALL");
+  const [savingShipmentId, setSavingShipmentId] = useState<string | null>(null);
+  const [cancellingShipmentId, setCancellingShipmentId] = useState<
+    string | null
+  >(null);
+  const [selectedSegment, setSelectedSegment] =
+    useState<ShipmentSegment>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreatePanelOpen, setIsCreatePanelOpen] = useState(true);
   const [editForm, setEditForm] = useState({
@@ -123,7 +126,9 @@ export default function UserDashboardPage() {
       });
 
       setShipments((prev) =>
-        prev.map((shipment) => (shipment.id === shipmentId ? updated : shipment))
+        prev.map((shipment) =>
+          shipment.id === shipmentId ? updated : shipment
+        )
       );
       setEditingShipmentId(null);
       setFeedback({
@@ -148,7 +153,9 @@ export default function UserDashboardPage() {
     try {
       const cancelled = await cancelShipment(shipmentId);
       setShipments((prev) =>
-        prev.map((shipment) => (shipment.id === shipmentId ? cancelled : shipment))
+        prev.map((shipment) =>
+          shipment.id === shipmentId ? cancelled : shipment
+        )
       );
       setEditingShipmentId((prev) => (prev === shipmentId ? null : prev));
       setFeedback({
@@ -173,10 +180,10 @@ export default function UserDashboardPage() {
 
     setFeedback(null);
 
-    fetchShipments()
-      .then((data) => {
-        setShipments(data);
-        setIsCreatePanelOpen(data.length === 0);
+    fetchShipments({ limit: 100 })
+      .then((res) => {
+        setShipments(res.data);
+        setIsCreatePanelOpen(res.data.length === 0);
       })
       .catch(() => {
         setFeedback({
@@ -206,12 +213,12 @@ export default function UserDashboardPage() {
       selectedSegment === "ALL"
         ? true
         : selectedSegment === "ACTIVE"
-        ? ["CREATED", "ASSIGNED", "PICKED_UP", "IN_TRANSIT"].includes(
-            shipment.status
-          )
-        : selectedSegment === "COMPLETED"
-        ? shipment.status === "DELIVERED"
-        : shipment.status === "CANCELLED";
+          ? ["CREATED", "ASSIGNED", "PICKED_UP", "IN_TRANSIT"].includes(
+              shipment.status
+            )
+          : selectedSegment === "COMPLETED"
+            ? shipment.status === "DELIVERED"
+            : shipment.status === "CANCELLED";
 
     const matchesSearch =
       normalizedQuery.length === 0
@@ -233,10 +240,10 @@ export default function UserDashboardPage() {
     selectedSegment === "ALL"
       ? "All Shipments"
       : selectedSegment === "ACTIVE"
-      ? "In Progress"
-      : selectedSegment === "COMPLETED"
-      ? "Delivered"
-      : "Cancelled";
+        ? "In Progress"
+        : selectedSegment === "COMPLETED"
+          ? "Delivered"
+          : "Cancelled";
 
   return (
     <main className="user-experience px-4 py-6 md:px-8 md:py-8">
@@ -273,7 +280,8 @@ export default function UserDashboardPage() {
                   </p>
                 </div>
                 <p className="user-muted text-sm md:text-right">
-                  Showing {visibleShipments.length} of {shipments.length} shipments
+                  Showing {visibleShipments.length} of {shipments.length}{" "}
+                  shipments
                 </p>
               </div>
 
@@ -300,9 +308,10 @@ export default function UserDashboardPage() {
                   Create your first shipment request
                 </h3>
                 <p className="user-muted mt-3 max-w-2xl text-sm leading-7">
-                  Use the panel on the left to submit pickup and delivery details.
-                  Once your first shipment is created, this area will turn into a
-                  live overview of active, delivered, and cancelled shipments.
+                  Use the panel on the left to submit pickup and delivery
+                  details. Once your first shipment is created, this area will
+                  turn into a live overview of active, delivered, and cancelled
+                  shipments.
                 </p>
               </div>
             ) : visibleShipments.length === 0 ? (
@@ -312,8 +321,8 @@ export default function UserDashboardPage() {
                   No shipments match the current filters
                 </h3>
                 <p className="user-muted mt-3 max-w-2xl text-sm leading-7">
-                  Adjust the selected view or clear the search term from the left
-                  panel to bring more shipments back into view.
+                  Adjust the selected view or clear the search term from the
+                  left panel to bring more shipments back into view.
                 </p>
               </div>
             ) : (
