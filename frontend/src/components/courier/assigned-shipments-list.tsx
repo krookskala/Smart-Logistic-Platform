@@ -36,9 +36,7 @@ export default function AssignedShipmentsList({
       CANCELLED: 4
     };
 
-    return (
-      (priority[left.status] ?? 99) - (priority[right.status] ?? 99)
-    );
+    return (priority[left.status] ?? 99) - (priority[right.status] ?? 99);
   });
 
   function getNextAction(status: string) {
@@ -103,7 +101,8 @@ export default function AssignedShipmentsList({
                   {shipment.title}
                 </h2>
                 <p className="courier-muted mt-2 text-sm leading-6">
-                  Requested by {shipment.createdBy?.email ?? shipment.createdById}
+                  Requested by{" "}
+                  {shipment.createdBy?.email ?? shipment.createdById}
                 </p>
               </div>
 
@@ -156,31 +155,34 @@ export default function AssignedShipmentsList({
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <span className="courier-chip">ID {shipment.id.slice(0, 8)}</span>
+                    <span className="courier-chip">
+                      ID {shipment.id.slice(0, 8)}
+                    </span>
                     <span className="courier-chip">
                       {shipment.status === "IN_TRANSIT"
                         ? "Final delivery stage"
                         : shipment.status === "PICKED_UP"
-                        ? "Package collected"
-                        : shipment.status === "ASSIGNED"
-                        ? "Awaiting pickup confirmation"
-                        : "Closed delivery"}
+                          ? "Package collected"
+                          : shipment.status === "ASSIGNED"
+                            ? "Awaiting pickup confirmation"
+                            : "Closed delivery"}
                     </span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {shipment.status !== "DELIVERED" && shipment.status !== "CANCELLED" ? (
+            {shipment.status !== "DELIVERED" &&
+            shipment.status !== "CANCELLED" ? (
               <div className="mt-4 flex flex-wrap items-center gap-3">
-              <a
-                href={`/shipments/${shipment.id}`}
-                className="rounded-full border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-50"
-              >
-                View tracking details
-              </a>
-            </div>
-          ) : null}
+                <a
+                  href={`/shipments/${shipment.id}`}
+                  className="rounded-full border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-50"
+                >
+                  View tracking details
+                </a>
+              </div>
+            ) : null}
 
             <TrackingUpdateForm
               form={getTrackingForm(shipment.id, shipment.status)}
