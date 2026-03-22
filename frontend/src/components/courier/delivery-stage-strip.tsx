@@ -14,7 +14,7 @@ export default function DeliveryStageStrip({
   const currentStepIndex = getStepIndex(status);
 
   return (
-    <div className="mt-4 grid gap-2 md:grid-cols-4">
+    <div className="mt-3 grid gap-2 md:grid-cols-4">
       {DELIVERY_STEPS.map((step, index) => {
         const isCurrent = step === status;
         const isCompleted =
@@ -23,23 +23,15 @@ export default function DeliveryStageStrip({
         return (
           <div
             key={step}
-            className={`rounded-[18px] border px-3 py-3 text-center ${
+            className={`rounded-xl border px-3 py-2.5 text-center ${
               isCurrent
-                ? "border-slate-900 bg-slate-900"
+                ? "progress-step-current border-transparent text-white"
                 : isCompleted
-                  ? "border-teal-200 bg-teal-50"
-                  : "border-slate-200 bg-slate-50/80"
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                  : "border-slate-200 bg-slate-50/80 text-slate-500"
             }`}
           >
-            <p
-              className={`text-xs font-semibold uppercase tracking-[0.14em] ${
-                isCurrent
-                  ? "text-white"
-                  : isCompleted
-                    ? "text-teal-800"
-                    : "text-slate-500"
-              }`}
-            >
+            <p className="text-xs font-semibold uppercase tracking-[0.14em]">
               {step.replace("_", " ")}
             </p>
           </div>
