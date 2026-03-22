@@ -6,6 +6,7 @@ import RoleNav from "../components/role-nav";
 import ToastProvider from "../components/toast-provider";
 import ThemeProvider from "../components/theme-provider";
 import ThemeToggle from "../components/theme-toggle";
+import ErrorBoundary from "../components/error-boundary";
 
 export const metadata: Metadata = {
   title: "Smart Logistics Platform",
@@ -24,7 +25,10 @@ export default function RootLayout({
           <ToastProvider>
             <header className="site-header border-b border-black/10 bg-white/80 backdrop-blur">
               <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-                <Link href="/" className="site-brand text-lg font-bold tracking-[0.06em]">
+                <Link
+                  href="/"
+                  className="site-brand text-lg font-bold tracking-[0.06em]"
+                >
                   Smart Logistics
                 </Link>
 
@@ -36,7 +40,7 @@ export default function RootLayout({
               </div>
             </header>
 
-            {children}
+            <ErrorBoundary>{children}</ErrorBoundary>
           </ToastProvider>
         </ThemeProvider>
       </body>
