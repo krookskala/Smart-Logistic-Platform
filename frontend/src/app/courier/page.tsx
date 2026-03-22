@@ -76,7 +76,10 @@ export default function CourierDashboardPage() {
     }));
   }
 
-  async function handleTrackingSubmit(shipmentId: string, currentStatus: string) {
+  async function handleTrackingSubmit(
+    shipmentId: string,
+    currentStatus: string
+  ) {
     const form = getTrackingForm(shipmentId, currentStatus);
     setSubmittingId(shipmentId);
     setFeedback(null);
@@ -93,8 +96,8 @@ export default function CourierDashboardPage() {
         locationLng: form.locationLng ? Number(form.locationLng) : undefined
       });
 
-      const refreshed = await fetchShipments();
-      setShipments(refreshed);
+      const refreshed = await fetchShipments({ limit: 100 });
+      setShipments(refreshed.data);
 
       setTrackingForms((prev) => ({
         ...prev,
@@ -158,8 +161,8 @@ export default function CourierDashboardPage() {
 
     setFeedback(null);
 
-    fetchShipments()
-      .then((data) => setShipments(data))
+    fetchShipments({ limit: 100 })
+      .then((res) => setShipments(res.data))
       .catch(() => {
         setFeedback({
           type: "error",
@@ -248,8 +251,8 @@ export default function CourierDashboardPage() {
                   No deliveries match the selected view
                 </h3>
                 <p className="user-muted mt-3 max-w-2xl text-sm leading-7">
-                  Switch to a different delivery view from the left panel to bring
-                  the rest of your queue back into focus.
+                  Switch to a different delivery view from the left panel to
+                  bring the rest of your queue back into focus.
                 </p>
               </div>
             ) : (
