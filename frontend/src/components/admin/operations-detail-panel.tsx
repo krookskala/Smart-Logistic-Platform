@@ -11,83 +11,67 @@ export default function OperationsDetailPanel({
 }: OperationsDetailPanelProps) {
   if (!user) {
     return (
-      <div className="admin-surface border-dashed p-6 text-sm text-slate-500">
-        Select an account from the Users tab to inspect its access posture,
-        courier record, and recent operational history.
+      <div className="admin-surface border-dashed p-5 text-sm text-slate-500">
+        Select a user to inspect their profile.
       </div>
     );
   }
 
   return (
-    <div className="admin-surface p-6 md:p-7">
-      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="admin-label">Inspection Detail</p>
-          <h2 className="mt-3 text-2xl font-semibold text-slate-950">
-            Account operations profile
-          </h2>
-          <p className="mt-2 text-sm text-slate-600">
-            Review role alignment, courier provisioning, and the most recent
-            related audit events for the selected account.
-          </p>
-        </div>
-        <div className="admin-chip">{user.email}</div>
+    <div className="admin-surface p-5 md:p-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold text-slate-950">Account Detail</h2>
+        <span className="text-xs text-slate-500">{user.email}</span>
       </div>
 
-      <div className="mt-5 grid gap-4 md:grid-cols-2">
-        <div className="admin-panel p-5">
-          <h3 className="admin-label">User Snapshot</h3>
-          <div className="mt-4 space-y-3 text-sm text-slate-700">
-            <p>Email: {user.email}</p>
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <div className="admin-panel p-4">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">
+            User
+          </h3>
+          <div className="mt-2 space-y-1 text-sm text-slate-700">
+            <p>{user.email}</p>
             <p>Role: {user.role}</p>
-            <p>Created: {new Date(user.createdAt).toLocaleString()}</p>
-            <p>
-              Courier record: {user.courier ? "Provisioned" : "Not provisioned"}
-            </p>
+            <p>Created: {new Date(user.createdAt).toLocaleDateString()}</p>
           </div>
         </div>
 
-        <div className="admin-panel p-5">
-          <h3 className="admin-label">Courier Snapshot</h3>
+        <div className="admin-panel p-4">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">
+            Courier
+          </h3>
           {user.courier ? (
-            <div className="mt-4 space-y-3 text-sm text-slate-700">
+            <div className="mt-2 space-y-1 text-sm text-slate-700">
               <p>Vehicle: {user.courier.vehicleType ?? "Not set"}</p>
-              <p>
-                Availability:{" "}
-                {user.courier.availability ? "Available" : "Unavailable"}
-              </p>
-              <p>Assigned shipments: {user.courier._count?.shipments ?? 0}</p>
+              <p>{user.courier.availability ? "Available" : "Unavailable"}</p>
+              <p>Shipments: {user.courier._count?.shipments ?? 0}</p>
             </div>
           ) : (
-            <p className="mt-4 text-sm text-slate-500">
-              This account does not currently have a courier profile.
-            </p>
+            <p className="mt-2 text-sm text-slate-500">No courier profile.</p>
           )}
         </div>
       </div>
 
-      <div className="mt-6">
-        <h3 className="admin-label">Recent Related Audit Events</h3>
+      <div className="mt-4">
+        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">
+          Recent Audit
+        </h3>
         {relatedLogs.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-500">
-            No recent audit entries were found for this account.
-          </p>
+          <p className="mt-2 text-sm text-slate-500">No recent events.</p>
         ) : (
-          <div className="mt-4 space-y-3">
+          <div className="mt-2 space-y-2">
             {relatedLogs.map((log) => (
               <div
                 key={log.id}
-                className="admin-panel flex flex-col gap-2 p-4 md:flex-row md:items-center md:justify-between"
+                className="admin-panel flex items-center justify-between p-3"
               >
                 <div>
                   <p className="text-sm font-semibold text-slate-900">
                     {log.actionType}
                   </p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-400">
-                    {log.targetType}
-                  </p>
+                  <p className="text-xs text-slate-500">{log.targetType}</p>
                 </div>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-400">
                   {new Date(log.createdAt).toLocaleString()}
                 </p>
               </div>
