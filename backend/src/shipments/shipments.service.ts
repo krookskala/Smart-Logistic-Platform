@@ -9,6 +9,7 @@ import { AuditService } from "../audit/audit.service";
 import { AccessControlService } from "../auth/access-control.service";
 import { CreateShipmentDto } from "./dto/create-shipment.dto";
 import { UpdateShipmentDto } from "./dto/update-shipment.dto";
+import { DelayShipmentDto } from "./dto/delay-shipment.dto";
 import { AuthUser } from "../auth/auth-user.type";
 import { ListShipmentsQueryDto } from "./dto/list-shipments-query.dto";
 
@@ -332,5 +333,107 @@ export class ShipmentsService {
       created: countByStatus["CREATED"] ?? 0,
       cancelled: countByStatus["CANCELLED"] ?? 0
     };
+  }
+
+  async getAnalytics() {
+    const deliveredShipments = await this.prisma.shipment.findMany({
+      where: { status: "DELIVERED" },
+      select: { createdAt: true, updatedAt: true }
+    });
+
+    const deliveryTimes = deliveredShipments
+      .map((s) => {
+        const created = new Date(s.createdAt).getTime();
+        const updated = new Date(s.updatedAt).getTime();
+        return updated - created;
+      })
+      .filter((ms) => ms > 0);
+
+    const avgDeliveryTimeMs =
+      deliveryTimes.length > 0
+        ? deliveryTimes.reduce((a, b) => a + b, 0) / deliveryTimes.length
+        : 0;
+
+    const avgDeliveryTimeHours = Math.round(avgDeliveryTimeMs / 3600000 * 10) / 10;
+
+    const shipmentsByDay = await this.prisma.shipment.groupBy({
+      by: ["createdAt"],
+      _count: true,
+      orderBy: { createdAt: "desc" },
+      take: 30
+    });
+
+    const dailyTrend = shipmentsByDay.map((entry) => ({
+      date: new Date(entry.createdAt).toISOString().split("T")[0],
+      count: entry._count
+    }));
+
+    const topAddresses = await this.prisma.shipment.groupBy({
+      by: ["deliveryAddress"],
+      _count: true,
+      orderBy: { _count: { deliveryAddress: "desc" } },
+      take: 5
+    });
+
+    return {
+      avgDeliveryTimeHours,
+      totalDelivered: deliveredShipments.length,
+      dailyTrend,
+      topDeliveryAddresses: topAddresses.map((a) => ({
+        address: a.deliveryAddress,
+        count: a._count
+      }))
+    };
+  }
+
+  async remove(id: string, actorUserId: string) {
+    const shipment = await this.getShipmentOrThrow(id);
+
+    if (shipment.status !== "CANCELLED") {
+      throw new BadRequestException(
+        "Only CANCELLED shipments can be deleted."
+      );
+    }
+
+    await this.prisma.trackingEvent.deleteMany({
+      where: { shipmentId: id }
+    });
+
+    await this.prisma.shipment.delete({ where: { id } });
+
+    await this.auditService.log({
+      actorUserId,
+      actionType: "SHIPMENT_DELETED",
+      targetType: "Shipment",
+      targetId: id,
+      metadata: { title: shipment.title }
+    });
+
+    return { message: "Shipment deleted successfully" };
+  }
+
+  async delay(id: string, dto: DelayShipmentDto, actorUserId: string) {
+    const shipment = await this.getShipmentOrThrow(id);
+
+    if (shipment.status !== "IN_TRANSIT") {
+      throw new BadRequestException(
+        "Only IN_TRANSIT shipments can be marked as delayed."
+      );
+    }
+
+    const updated = await this.prisma.shipment.update({
+      where: { id },
+      data: { status: "DELAYED" }
+    });
+
+    await this.auditService.log({
+      actorUserId,
+      actionType: "SHIPMENT_DELAYED",
+      targetType: "Shipment",
+      targetId: id,
+      metadata: { note: dto.note }
+    });
+
+    return updated;
   }
 }
