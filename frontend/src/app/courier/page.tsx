@@ -1,208 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { redirectToLoginIfUnauthorized } from "../../lib/route-guards";
-import {
-  createTrackingEvent,
-  fetchMyCourier,
-  fetchShipments,
-  Shipment,
-  updateMyCourierAvailability,
-  Courier
-} from "../../lib/api";
-import { FeedbackState, TrackingFormState } from "../../lib/types";
 import FeedbackAlert from "../../components/feedback-alert";
 import AssignedShipmentsList from "../../components/courier/assigned-shipments-list";
 import CourierSidebar from "../../components/courier/courier-sidebar";
 import CourierQueueHeader from "../../components/courier/courier-queue-header";
-import { CourierSegment } from "../../components/courier/courier-segmented-filter";
+import useCourierShipments from "../../hooks/use-courier-shipments";
 
 export default function CourierDashboardPage() {
-  const router = useRouter();
-  const [shipments, setShipments] = useState<Shipment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [trackingForms, setTrackingForms] = useState<
-    Record<string, TrackingFormState>
-  >({});
-  const [submittingId, setSubmittingId] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<FeedbackState>(null);
-  const [courier, setCourier] = useState<Courier | null>(null);
-  const [savingAvailability, setSavingAvailability] = useState(false);
-  const [selectedSegment, setSelectedSegment] = useState<CourierSegment>("ALL");
-
-  function getDefaultNextStatus(currentStatus: string) {
-    if (currentStatus === "ASSIGNED") {
-      return "PICKED_UP";
-    }
-
-    if (currentStatus === "PICKED_UP") {
-      return "IN_TRANSIT";
-    }
-
-    if (currentStatus === "IN_TRANSIT") {
-      return "DELIVERED";
-    }
-
-    return "";
-  }
-
-  function getTrackingForm(
-    shipmentId: string,
-    currentStatus: string
-  ): TrackingFormState {
-    return (
-      trackingForms[shipmentId] || {
-        status: getDefaultNextStatus(currentStatus),
-        note: "",
-        locationLat: "",
-        locationLng: ""
-      }
-    );
-  }
-
-  function updateTrackingForm(
-    shipmentId: string,
-    currentStatus: string,
-    field: keyof TrackingFormState,
-    value: string
-  ) {
-    setTrackingForms((prev) => ({
-      ...prev,
-      [shipmentId]: {
-        ...getTrackingForm(shipmentId, currentStatus),
-        [field]: value
-      }
-    }));
-  }
-
-  async function handleTrackingSubmit(
-    shipmentId: string,
-    currentStatus: string
-  ) {
-    const form = getTrackingForm(shipmentId, currentStatus);
-    setSubmittingId(shipmentId);
-    setFeedback(null);
-
-    try {
-      if (form.status === "DELIVERED" && !form.note.trim()) {
-        throw new Error("A delivery note is required for delivered shipments.");
-      }
-
-      await createTrackingEvent(shipmentId, {
-        status: form.status,
-        note: form.note || undefined,
-        locationLat: form.locationLat ? Number(form.locationLat) : undefined,
-        locationLng: form.locationLng ? Number(form.locationLng) : undefined
-      });
-
-      const refreshed = await fetchShipments({ limit: 100 });
-      setShipments(refreshed.data);
-
-      setTrackingForms((prev) => ({
-        ...prev,
-        [shipmentId]: {
-          status: getDefaultNextStatus(form.status),
-          note: "",
-          locationLat: "",
-          locationLng: ""
-        }
-      }));
-
-      setFeedback({
-        type: "success",
-        message: "Tracking updated successfully."
-      });
-    } catch (error) {
-      setFeedback({
-        type: "error",
-        message:
-          error instanceof Error ? error.message : "Failed to update tracking."
-      });
-    } finally {
-      setSubmittingId(null);
-    }
-  }
-
-  async function handleAvailabilityToggle() {
-    if (!courier) {
-      return;
-    }
-
-    setSavingAvailability(true);
-    setFeedback(null);
-
-    try {
-      const updated = await updateMyCourierAvailability(!courier.availability);
-      setCourier(updated);
-      setFeedback({
-        type: "success",
-        message: `Availability updated to ${
-          updated.availability ? "available" : "unavailable"
-        }.`
-      });
-    } catch (error) {
-      setFeedback({
-        type: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Failed to update availability."
-      });
-    } finally {
-      setSavingAvailability(false);
-    }
-  }
-
-  useEffect(() => {
-    if (!redirectToLoginIfUnauthorized(router, ["COURIER"])) {
-      return;
-    }
-
-    setFeedback(null);
-
-    fetchShipments({ limit: 100 })
-      .then((res) => setShipments(res.data))
-      .catch(() => {
-        setFeedback({
-          type: "error",
-          message: "Failed to load assigned deliveries."
-        });
-      })
-      .finally(() => setLoading(false));
-
-    fetchMyCourier()
-      .then((data) => setCourier(data))
-      .catch(() => {
-        // Keep the dashboard usable even if the profile card fails to load.
-      });
-  }, [router]);
-
-  const readyNowCount = shipments.filter((shipment) =>
-    ["ASSIGNED", "PICKED_UP"].includes(shipment.status)
-  ).length;
-  const inTransitCount = shipments.filter(
-    (shipment) => shipment.status === "IN_TRANSIT"
-  ).length;
-  const completedCount = shipments.filter((shipment) =>
-    ["DELIVERED", "CANCELLED"].includes(shipment.status)
-  ).length;
-
-  const visibleShipments = shipments.filter((shipment) => {
-    if (selectedSegment === "READY_NOW") {
-      return ["ASSIGNED", "PICKED_UP"].includes(shipment.status);
-    }
-
-    if (selectedSegment === "IN_TRANSIT") {
-      return shipment.status === "IN_TRANSIT";
-    }
-
-    if (selectedSegment === "COMPLETED") {
-      return ["DELIVERED", "CANCELLED"].includes(shipment.status);
-    }
-
-    return true;
-  });
+  const {
+    shipments,
+    loading,
+    feedback,
+    courier,
+    savingAvailability,
+    selectedSegment,
+    submittingId,
+    readyNowCount,
+    inTransitCount,
+    completedCount,
+    visibleShipments,
+    setSelectedSegment,
+    handleAvailabilityToggle,
+    getTrackingForm,
+    updateTrackingForm,
+    handleTrackingSubmit
+  } = useCourierShipments();
 
   return (
     <main className="courier-experience px-4 py-6 md:px-8 md:py-8">
@@ -230,33 +52,29 @@ export default function CourierDashboardPage() {
             <FeedbackAlert feedback={feedback} />
 
             {loading ? (
-              <div className="user-surface mt-6 px-6 py-8 text-sm text-stone-600">
-                Loading your assigned deliveries...
+              <div className="courier-surface mt-4 px-6 py-8 text-sm text-slate-500">
+                Loading deliveries...
               </div>
             ) : shipments.length === 0 ? (
-              <div className="user-surface mt-6 px-6 py-10 md:px-8">
-                <p className="user-label">No Active Assignments</p>
-                <h3 className="user-display mt-3 text-3xl font-semibold text-stone-900">
-                  Your delivery queue is currently clear
+              <div className="courier-surface mt-4 px-6 py-8">
+                <h3 className="text-lg font-bold text-slate-900">
+                  No assignments yet
                 </h3>
-                <p className="user-muted mt-3 max-w-2xl text-sm leading-7">
-                  Once operations assigns a shipment to you, it will appear here
-                  with the next required courier action and update controls.
+                <p className="mt-1 text-sm text-slate-500">
+                  Shipments assigned to you will appear here.
                 </p>
               </div>
             ) : visibleShipments.length === 0 ? (
-              <div className="user-surface mt-6 px-6 py-10 md:px-8">
-                <p className="user-label">No Matching Deliveries</p>
-                <h3 className="user-display mt-3 text-3xl font-semibold text-stone-900">
-                  No deliveries match the selected view
+              <div className="courier-surface mt-4 px-6 py-8">
+                <h3 className="text-lg font-bold text-slate-900">
+                  No matching deliveries
                 </h3>
-                <p className="user-muted mt-3 max-w-2xl text-sm leading-7">
-                  Switch to a different delivery view from the left panel to
-                  bring the rest of your queue back into focus.
+                <p className="mt-1 text-sm text-slate-500">
+                  Try a different filter.
                 </p>
               </div>
             ) : (
-              <div className="mt-6">
+              <div className="mt-4">
                 <AssignedShipmentsList
                   shipments={visibleShipments}
                   submittingId={submittingId}
