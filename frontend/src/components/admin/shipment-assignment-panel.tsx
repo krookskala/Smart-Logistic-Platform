@@ -41,10 +41,7 @@ export default function ShipmentAssignmentPanel({
       ) : (
         <div className="mt-6 space-y-4">
           {shipments.map((shipment) => (
-            <div
-              key={shipment.id}
-              className="admin-panel p-5 md:p-6"
-            >
+            <div key={shipment.id} className="admin-panel p-5 md:p-6">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-3">
@@ -93,7 +90,9 @@ export default function ShipmentAssignmentPanel({
                     <select
                       className="w-full rounded-2xl border border-sky-200 bg-white px-4 py-3 text-slate-950"
                       value={selectedCouriers[shipment.id] || ""}
-                      onChange={(e) => onSelectCourier(shipment.id, e.target.value)}
+                      onChange={(e) =>
+                        onSelectCourier(shipment.id, e.target.value)
+                      }
                     >
                       <option value="">Select courier</option>
                       {couriers.map((courier) => (
@@ -103,8 +102,12 @@ export default function ShipmentAssignmentPanel({
                           disabled={!courier.availability}
                         >
                           {courier.user.email}
-                          {courier.vehicleType ? ` (${courier.vehicleType})` : ""}
-                          {courier.availability === false ? " [Unavailable]" : ""}
+                          {courier.vehicleType
+                            ? ` (${courier.vehicleType})`
+                            : ""}
+                          {courier.availability === false
+                            ? " [Unavailable]"
+                            : ""}
                         </option>
                       ))}
                     </select>
