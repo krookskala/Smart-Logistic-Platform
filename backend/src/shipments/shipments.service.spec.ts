@@ -373,4 +373,200 @@ describe("ShipmentsService", () => {
       } as any)
     ).rejects.toBeInstanceOf(BadRequestException);
   });
+
+  it("getMetrics returns counts grouped by status", async () => {
+    const prisma = {
+      shipment: {
+        groupBy: jest.fn().mockResolvedValue([
+          { status: "CREATED", _count: 3 },
+          { status: "DELIVERED", _count: 5 },
+          { status: "IN_TRANSIT", _count: 2 }
+        ])
+      }
+    } as any;
+
+    const auditService = { log: jest.fn().mockResolvedValue(undefined) } as any;
+    const accessControlService = {} as any;
+    const service = new ShipmentsService(
+      prisma,
+      auditService,
+      accessControlService
+    );
+
+    const result = await service.getMetrics();
+
+    expect(result).toEqual({
+      total: 10,
+      delivered: 5,
+      pickedUp: 0,
+      inTransit: 2,
+      assigned: 0,
+      created: 3,
+      cancelled: 0
+    });
+  });
+
+  it("getAnalytics returns delivery stats and trends", async () => {
+    const now = new Date("2026-03-22T12:00:00Z");
+    const created = new Date("2026-03-22T00:00:00Z");
+    const prisma = {
+      shipment: {
+        findMany: jest.fn().mockResolvedValue([
+          { createdAt: created, updatedAt: now }
+        ]),
+        groupBy: jest
+          .fn()
+          .mockResolvedValueOnce([
+            { createdAt: now, _count: 1 }
+          ])
+          .mockResolvedValueOnce([
+            { deliveryAddress: "123 Main St", _count: 3 }
+          ])
+      }
+    } as any;
+
+    const auditService = { log: jest.fn().mockResolvedValue(undefined) } as any;
+    const accessControlService = {} as any;
+    const service = new ShipmentsService(
+      prisma,
+      auditService,
+      accessControlService
+    );
+
+    const result = await service.getAnalytics();
+
+    expect(result.totalDelivered).toBe(1);
+    expect(result.avgDeliveryTimeHours).toBeGreaterThan(0);
+    expect(result.dailyTrend).toHaveLength(1);
+    expect(result.topDeliveryAddresses).toEqual([
+      { address: "123 Main St", count: 3 }
+    ]);
+  });
+
+  it("remove deletes a CANCELLED shipment and its tracking events", async () => {
+    const prisma = {
+      shipment: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: "s1",
+          status: "CANCELLED",
+          title: "Test"
+        }),
+        delete: jest.fn().mockResolvedValue({ id: "s1" })
+      },
+      trackingEvent: {
+        deleteMany: jest.fn().mockResolvedValue({ count: 2 })
+      }
+    } as any;
+
+    const auditService = { log: jest.fn().mockResolvedValue(undefined) } as any;
+    const accessControlService = {} as any;
+    const service = new ShipmentsService(
+      prisma,
+      auditService,
+      accessControlService
+    );
+
+    const result = await service.remove("s1", "admin1");
+
+    expect(prisma.trackingEvent.deleteMany).toHaveBeenCalledWith({
+      where: { shipmentId: "s1" }
+    });
+    expect(prisma.shipment.delete).toHaveBeenCalledWith({
+      where: { id: "s1" }
+    });
+    expect(auditService.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actionType: "SHIPMENT_DELETED",
+        targetId: "s1"
+      })
+    );
+    expect(result).toEqual({ message: "Shipment deleted successfully" });
+  });
+
+  it("remove rejects non-CANCELLED shipments", async () => {
+    const prisma = {
+      shipment: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: "s1",
+          status: "ASSIGNED"
+        })
+      }
+    } as any;
+
+    const auditService = { log: jest.fn().mockResolvedValue(undefined) } as any;
+    const accessControlService = {} as any;
+    const service = new ShipmentsService(
+      prisma,
+      auditService,
+      accessControlService
+    );
+
+    await expect(service.remove("s1", "admin1")).rejects.toBeInstanceOf(
+      BadRequestException
+    );
+  });
+
+  it("delay transitions IN_TRANSIT shipment to DELAYED", async () => {
+    const prisma = {
+      shipment: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: "s1",
+          status: "IN_TRANSIT"
+        }),
+        update: jest.fn().mockResolvedValue({
+          id: "s1",
+          status: "DELAYED"
+        })
+      }
+    } as any;
+
+    const auditService = { log: jest.fn().mockResolvedValue(undefined) } as any;
+    const accessControlService = {} as any;
+    const service = new ShipmentsService(
+      prisma,
+      auditService,
+      accessControlService
+    );
+
+    const result = await service.delay(
+      "s1",
+      { note: "Traffic jam" },
+      "admin1"
+    );
+
+    expect(prisma.shipment.update).toHaveBeenCalledWith({
+      where: { id: "s1" },
+      data: { status: "DELAYED" }
+    });
+    expect(auditService.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actionType: "SHIPMENT_DELAYED",
+        metadata: { note: "Traffic jam" }
+      })
+    );
+    expect(result.status).toBe("DELAYED");
+  });
+
+  it("delay rejects non-IN_TRANSIT shipments", async () => {
+    const prisma = {
+      shipment: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: "s1",
+          status: "CREATED"
+        })
+      }
+    } as any;
+
+    const auditService = { log: jest.fn().mockResolvedValue(undefined) } as any;
+    const accessControlService = {} as any;
+    const service = new ShipmentsService(
+      prisma,
+      auditService,
+      accessControlService
+    );
+
+    await expect(
+      service.delay("s1", { note: "Test" }, "admin1")
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
 });
