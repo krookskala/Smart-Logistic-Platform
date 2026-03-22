@@ -34,14 +34,13 @@ export default function UserRoleManagementPanel({
       </div>
 
       {users.length === 0 ? (
-        <p className="mt-4 text-sm text-slate-500">No user accounts were found.</p>
+        <p className="mt-4 text-sm text-slate-500">
+          No user accounts were found.
+        </p>
       ) : (
         <div className="mt-6 space-y-4">
           {users.map((user) => (
-            <div
-              key={user.id}
-              className="admin-panel p-5"
-            >
+            <div key={user.id} className="admin-panel p-5">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                 <div>
                   <p className="admin-label">User Account</p>
@@ -51,7 +50,8 @@ export default function UserRoleManagementPanel({
                   <div className="mt-3 flex flex-wrap gap-2">
                     <span className="admin-chip">Role: {user.role}</span>
                     <span className="admin-chip">
-                      Courier profile: {user.courier ? "Provisioned" : "Not provisioned"}
+                      Courier profile:{" "}
+                      {user.courier ? "Provisioned" : "Not provisioned"}
                     </span>
                   </div>
                   <p className="mt-3 text-sm text-slate-500">
