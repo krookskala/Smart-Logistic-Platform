@@ -131,11 +131,10 @@ describe("TrackingService", () => {
     );
 
     await expect(
-      service.create(
-        "s1",
-        { status: "DELIVERED", note: "done" } as any,
-        { userId: "u1", role: "COURIER" }
-      )
+      service.create("s1", { status: "DELIVERED", note: "done" } as any, {
+        userId: "u1",
+        role: "COURIER"
+      })
     ).rejects.toThrow("Invalid status transition");
   });
 
@@ -168,11 +167,10 @@ describe("TrackingService", () => {
     );
 
     await expect(
-      service.create(
-        "s1",
-        { status: "DELIVERED" } as any,
-        { userId: "u1", role: "COURIER" }
-      )
+      service.create("s1", { status: "DELIVERED" } as any, {
+        userId: "u1",
+        role: "COURIER"
+      })
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
