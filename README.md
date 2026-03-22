@@ -143,21 +143,37 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
 
 ## Running the Project Locally
 
-### Option 1: Run with Docker Compose
+### Quick Start (Recommended)
 
-From the project root:
+A single command starts PostgreSQL (Docker), the backend (watch mode), and the frontend (dev server):
+
+```bash
+npm run dev
+```
+
+This starts:
+
+- PostgreSQL on `5432` (via Docker)
+- Backend on `3001` (NestJS watch mode with hot-reload)
+- Frontend on `3000` (Next.js dev server with hot-reload)
+
+All three processes run in parallel with color-coded output. Press `Ctrl+C` to stop everything.
+
+To stop and remove the database container afterwards:
+
+```bash
+npm run dev:stop
+```
+
+### Option 2: Run with Full Docker Compose
+
+If you prefer running everything inside Docker (no hot-reload):
 
 ```bash
 docker compose up --build
 ```
 
-This starts:
-
-- PostgreSQL on `5432`
-- Backend on `3001`
-- Frontend on `3000`
-
-### Option 2: Run Frontend and Backend Separately
+### Option 3: Run Services Individually
 
 Start PostgreSQL first, then:
 
@@ -198,7 +214,7 @@ The GitHub Actions workflow runs:
 - format check
 - lint
 - typecheck
-- backend tests
+- tests
 - build
 
 for both frontend and backend.
