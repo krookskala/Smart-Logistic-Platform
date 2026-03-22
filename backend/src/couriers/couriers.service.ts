@@ -37,10 +37,7 @@ export class CouriersService {
     });
   }
 
-  async updateMyAvailability(
-    userId: string,
-    dto: UpdateMyAvailabilityDto
-  ) {
+  async updateMyAvailability(userId: string, dto: UpdateMyAvailabilityDto) {
     return this.prisma.courier.update({
       where: { userId },
       data: {
