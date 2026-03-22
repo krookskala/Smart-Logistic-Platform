@@ -20,8 +20,8 @@ export default function AvailabilityPanel({
             New assignment status
           </h2>
           <p className="courier-muted mt-2 text-sm leading-6">
-            Let dispatch know whether you are ready to receive additional delivery
-            assignments while keeping your current queue visible.
+            Let dispatch know whether you are ready to receive additional
+            delivery assignments while keeping your current queue visible.
           </p>
         </div>
 
@@ -39,8 +39,8 @@ export default function AvailabilityPanel({
             {saving
               ? "Saving..."
               : courier?.availability
-              ? "Mark as unavailable"
-              : "Mark as available"}
+                ? "Mark as unavailable"
+                : "Mark as available"}
           </button>
         </div>
       </div>
