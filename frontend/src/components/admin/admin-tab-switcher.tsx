@@ -5,27 +5,11 @@ type AdminTabSwitcherProps = {
   onChange: (tab: AdminTabKey) => void;
 };
 
-const tabs: Array<{ key: AdminTabKey; label: string; description: string }> = [
-  {
-    key: "overview",
-    label: "Overview",
-    description: "Network performance and current priorities."
-  },
-  {
-    key: "shipments",
-    label: "Shipments",
-    description: "Dispatch planning and shipment routing."
-  },
-  {
-    key: "users",
-    label: "Users",
-    description: "Access management and courier setup."
-  },
-  {
-    key: "audit",
-    label: "Audit",
-    description: "Change history and operational traceability."
-  }
+const tabs: Array<{ key: AdminTabKey; label: string }> = [
+  { key: "overview", label: "Overview" },
+  { key: "shipments", label: "Shipments" },
+  { key: "users", label: "Users" },
+  { key: "audit", label: "Audit" }
 ];
 
 export default function AdminTabSwitcher({
@@ -33,8 +17,8 @@ export default function AdminTabSwitcher({
   onChange
 }: AdminTabSwitcherProps) {
   return (
-    <div className="admin-surface p-3">
-      <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+    <div className="admin-surface p-2">
+      <div className="grid grid-cols-4 gap-1">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.key;
 
@@ -43,27 +27,13 @@ export default function AdminTabSwitcher({
               key={tab.key}
               type="button"
               onClick={() => onChange(tab.key)}
-              className={`rounded-2xl px-4 py-4 text-left transition ${
+              className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
                 isActive
-                  ? "border border-sky-200 bg-sky-50 text-slate-950 shadow-sm"
-                  : "bg-slate-50 text-slate-700 hover:bg-slate-100"
+                  ? "segment-active text-white shadow-sm"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
               }`}
             >
-              <p
-                className={`admin-label ${
-                  isActive ? "text-sky-700" : "text-slate-500"
-                }`}
-              >
-                {tab.label}
-              </p>
-              <p className="mt-2 text-lg font-semibold">{tab.label}</p>
-              <p
-                className={`mt-1 text-sm ${
-                  isActive ? "text-slate-600" : "text-slate-500"
-                }`}
-              >
-                {tab.description}
-              </p>
+              {tab.label}
             </button>
           );
         })}
