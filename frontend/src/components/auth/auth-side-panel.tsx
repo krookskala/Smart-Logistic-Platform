@@ -1,49 +1,59 @@
 type AuthSidePanelProps = {
-  eyebrow: string;
   title: string;
-  description: string;
-  highlights: string[];
-  accent?: "sky" | "amber";
+  subtitle?: string;
 };
 
-export default function AuthSidePanel({
-  eyebrow,
-  title,
-  description,
-  highlights,
-  accent = "sky"
-}: AuthSidePanelProps) {
-  const dotClass = accent === "amber" ? "bg-amber-400" : "bg-sky-400";
-  const chipClass =
-    accent === "amber"
-      ? "border-amber-200 bg-amber-50/90 text-amber-900"
-      : "border-sky-200 bg-sky-50/90 text-sky-900";
-
+export default function AuthSidePanel({ title, subtitle }: AuthSidePanelProps) {
   return (
-    <div className="relative z-10 flex h-full flex-col">
-      <p className="landing-label">{eyebrow}</p>
-      <h1 className="landing-display mt-5 text-4xl font-semibold leading-tight text-slate-950 md:text-5xl">
-        {title}
-      </h1>
-      <p className="landing-muted mt-5 max-w-xl text-base leading-8 md:text-lg">
-        {description}
-      </p>
-
-      <div className="mt-8 grid gap-3">
-        {highlights.map((item) => (
-          <div
-            key={item}
-            className="landing-panel flex items-center gap-3 px-4 py-4 text-sm font-medium text-slate-700"
+    <div className="relative z-10 flex h-full flex-col items-start justify-between">
+      <div>
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/10 to-violet-500/10">
+          <svg
+            className="h-5 w-5 text-blue-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
           >
-            <span className={`h-2.5 w-2.5 rounded-full ${dotClass}`} />
-            {item}
-          </div>
-        ))}
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0H21M3.375 14.25h-.375a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3h8.25m5.625 0H18a3 3 0 0 1 3 3v4.5a3 3 0 0 1-3 3h-.375m-13.5 0h13.5"
+            />
+          </svg>
+        </div>
+
+        <h1 className="landing-display mt-6 text-3xl leading-tight text-slate-950 md:text-4xl">
+          {title}
+        </h1>
+
+        {subtitle && (
+          <p className="landing-muted mt-4 max-w-sm text-base leading-relaxed">
+            {subtitle}
+          </p>
+        )}
       </div>
 
-      <div className="mt-auto pt-8">
-        <div className={`landing-chip ${chipClass}`}>
-          Smart Logistics Platform
+      <div className="auth-side-visual mt-12 w-full flex-1 rounded-xl bg-gradient-to-br from-blue-500/5 via-violet-500/5 to-transparent p-6">
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-3">
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            <span className="text-sm font-medium text-slate-600">
+              Real-time shipment tracking
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="h-2 w-2 rounded-full bg-blue-400" />
+            <span className="text-sm font-medium text-slate-600">
+              Role-based dashboards
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="h-2 w-2 rounded-full bg-violet-400" />
+            <span className="text-sm font-medium text-slate-600">
+              Courier coordination
+            </span>
+          </div>
         </div>
       </div>
     </div>
