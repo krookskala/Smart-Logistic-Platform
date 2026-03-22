@@ -16,7 +16,9 @@ export default function ShipmentSummaryCard({
       </h2>
 
       {!shipment ? (
-        <p className="mt-4 text-sm text-stone-500">Loading shipment details...</p>
+        <p className="mt-4 text-sm text-stone-500">
+          Loading shipment details...
+        </p>
       ) : (
         <div className="mt-6 space-y-5">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
