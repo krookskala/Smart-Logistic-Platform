@@ -32,11 +32,8 @@ function ToastViewport({ toast }: { toast: ToastState }) {
   }
 
   const accentClass =
-    toast.type === "success"
-      ? "toast-success"
-      : "toast-error";
-  const dotClass =
-    toast.type === "success" ? "bg-emerald-500" : "bg-rose-500";
+    toast.type === "success" ? "toast-success" : "toast-error";
+  const dotClass = toast.type === "success" ? "bg-emerald-500" : "bg-rose-500";
   const badgeClass =
     toast.type === "success"
       ? "bg-emerald-100 text-emerald-800"
