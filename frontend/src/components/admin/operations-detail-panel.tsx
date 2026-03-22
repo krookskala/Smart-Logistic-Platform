@@ -41,7 +41,9 @@ export default function OperationsDetailPanel({
             <p>Email: {user.email}</p>
             <p>Role: {user.role}</p>
             <p>Created: {new Date(user.createdAt).toLocaleString()}</p>
-            <p>Courier record: {user.courier ? "Provisioned" : "Not provisioned"}</p>
+            <p>
+              Courier record: {user.courier ? "Provisioned" : "Not provisioned"}
+            </p>
           </div>
         </div>
 
@@ -51,7 +53,8 @@ export default function OperationsDetailPanel({
             <div className="mt-4 space-y-3 text-sm text-slate-700">
               <p>Vehicle: {user.courier.vehicleType ?? "Not set"}</p>
               <p>
-                Availability: {user.courier.availability ? "Available" : "Unavailable"}
+                Availability:{" "}
+                {user.courier.availability ? "Available" : "Unavailable"}
               </p>
               <p>Assigned shipments: {user.courier._count?.shipments ?? 0}</p>
             </div>
