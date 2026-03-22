@@ -44,7 +44,9 @@ export default function LandingWorkflowBand() {
           <article key={item.step} className="landing-panel p-5 md:p-6">
             <div className="flex items-center gap-3">
               <span className="landing-chip">{item.step}</span>
-              <p className="text-xl font-semibold text-slate-950">{item.title}</p>
+              <p className="text-xl font-semibold text-slate-950">
+                {item.title}
+              </p>
             </div>
             <p className="landing-muted mt-4 text-sm leading-7">
               {item.description}
