@@ -26,21 +26,24 @@ enum ShipmentStatus {
 model User {
     id                  String          @id @default(uuid())
     email               String          @unique
-    password            String      
+    password            String
     role                Role            @default(USER)
     createdAt           DateTime        @default(now())
+    updatedAt           DateTime        @updatedAt
 
     courier             Courier?
     shipments           Shipment[]      @relation("UserShipments")
     auditLogs          AuditLog[]      @relation("UserAuditLogs")
+    refreshTokens      RefreshToken[]  @relation("UserRefreshTokens")
 }
 
 model Courier {
     id                  String          @id @default(uuid())
     userId              String          @unique
-    vehicleType         String?     
+    vehicleType         String?
     availability        Boolean         @default(true)
     createdAt           DateTime        @default(now())
+    updatedAt           DateTime        @updatedAt
 
     user                User            @relation(fields: [userId], references: [id])
     shipments           Shipment[]      @relation("CourierShipments")
@@ -56,16 +59,21 @@ model Shipment {
     createdById         String
     assignedCourierId   String?
     createdAt           DateTime        @default(now())
+    updatedAt           DateTime        @updatedAt
 
     createdBy           User            @relation("UserShipments", fields: [createdById], references: [id])
     assignedCourier     Courier?        @relation("CourierShipments", fields: [assignedCourierId], references: [id])
     trackingEvents      TrackingEvent[]
+
+    @@index([createdById])
+    @@index([assignedCourierId])
+    @@index([status])
 }
 
 model TrackingEvent {
     id                  String          @id @default(uuid())
     shipmentId          String
-    status              ShipmentStatus  
+    status              ShipmentStatus
     locationLat         Float?
     locationLng         Float?
     note                String?
@@ -73,7 +81,20 @@ model TrackingEvent {
 
     shipment            Shipment        @relation(fields: [shipmentId], references: [id])
 
-    @@index([shipmentId, createdAt])  
+    @@index([shipmentId, createdAt])
+}
+
+model RefreshToken {
+    id           String   @id @default(uuid())
+    token        String   @unique
+    userId       String
+    expiresAt    DateTime
+    createdAt    DateTime @default(now())
+
+    user         User     @relation("UserRefreshTokens", fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([userId])
+    @@index([expiresAt])
 }
 
 model AuditLog {
