@@ -8,13 +8,20 @@ import { LoginDto } from "./dto/login.dto";
 jest.mock("bcrypt");
 
 describe("AuthService", () => {
-  it("registers a user with hashed password and default role", async () => {
-    const prisma = {
-      user: {
-        create: jest.fn()
-      }
+  function buildPrisma(overrides: Record<string, unknown> = {}) {
+    return {
+      user: { create: jest.fn(), findUnique: jest.fn() },
+      refreshToken: {
+        create: jest.fn().mockResolvedValue({}),
+        findUnique: jest.fn(),
+        delete: jest.fn().mockResolvedValue({})
+      },
+      ...overrides
     } as any;
+  }
 
+  it("registers a user with hashed password and default role", async () => {
+    const prisma = buildPrisma();
     const jwtService = {} as JwtService;
     const service = new AuthService(prisma, jwtService);
 
@@ -47,13 +54,8 @@ describe("AuthService", () => {
     });
   });
 
-  it("registers a user with explicit role", async () => {
-    const prisma = {
-      user: {
-        create: jest.fn()
-      }
-    } as any;
-
+  it("always registers with USER role regardless of input", async () => {
+    const prisma = buildPrisma();
     const jwtService = {} as JwtService;
     const service = new AuthService(prisma, jwtService);
 
@@ -61,13 +63,12 @@ describe("AuthService", () => {
     prisma.user.create.mockResolvedValue({
       id: "u2",
       email: "admin@example.com",
-      role: "ADMIN"
+      role: "USER"
     });
 
     const dto: RegisterDto = {
       email: "admin@example.com",
-      password: "secret123",
-      role: "ADMIN" as any
+      password: "secret123"
     } as RegisterDto;
 
     await service.register(dto);
@@ -76,18 +77,13 @@ describe("AuthService", () => {
       data: {
         email: dto.email,
         password: "hashed-password",
-        role: dto.role
+        role: "USER"
       }
     });
   });
 
   it("throws UnauthorizedException for login with non-existing user", async () => {
-    const prisma = {
-      user: {
-        findUnique: jest.fn()
-      }
-    } as any;
-
+    const prisma = buildPrisma();
     const jwtService = { signAsync: jest.fn() } as any;
     const service = new AuthService(prisma, jwtService);
 
@@ -104,12 +100,7 @@ describe("AuthService", () => {
   });
 
   it("throws UnauthorizedException for login with invalid password", async () => {
-    const prisma = {
-      user: {
-        findUnique: jest.fn()
-      }
-    } as any;
-
+    const prisma = buildPrisma();
     const jwtService = { signAsync: jest.fn() } as any;
     const service = new AuthService(prisma, jwtService);
 
@@ -132,13 +123,8 @@ describe("AuthService", () => {
     );
   });
 
-  it("logs in and returns signed JWT and sanitized user", async () => {
-    const prisma = {
-      user: {
-        findUnique: jest.fn()
-      }
-    } as any;
-
+  it("logs in and returns access token, refresh token, and sanitized user", async () => {
+    const prisma = buildPrisma();
     const jwtService = {
       signAsync: jest.fn().mockResolvedValue("jwt-token")
     } as any;
@@ -166,13 +152,69 @@ describe("AuthService", () => {
       role: "USER"
     });
 
-    expect(result).toEqual({
-      access_token: "jwt-token",
-      user: {
-        id: "u1",
-        email: "test@example.com",
-        role: "USER"
-      }
+    expect(result.access_token).toBe("jwt-token");
+    expect(result.refresh_token).toBeDefined();
+    expect(typeof result.refresh_token).toBe("string");
+    expect(result.user).toEqual({
+      id: "u1",
+      email: "test@example.com",
+      role: "USER"
     });
+    expect(prisma.refreshToken.create).toHaveBeenCalled();
+  });
+
+  it("refresh rotates tokens and returns new pair", async () => {
+    const prisma = buildPrisma();
+    const jwtService = {
+      signAsync: jest.fn().mockResolvedValue("new-jwt-token")
+    } as any;
+    const service = new AuthService(prisma, jwtService);
+
+    prisma.refreshToken.findUnique.mockResolvedValue({
+      id: "rt1",
+      token: "old-refresh-token",
+      userId: "u1",
+      expiresAt: new Date(Date.now() + 86400000),
+      user: { id: "u1", email: "test@example.com", role: "USER" }
+    });
+
+    const result = await service.refresh("old-refresh-token");
+
+    expect(prisma.refreshToken.delete).toHaveBeenCalledWith({
+      where: { id: "rt1" }
+    });
+    expect(result.access_token).toBe("new-jwt-token");
+    expect(result.refresh_token).toBeDefined();
+    expect(result.user.email).toBe("test@example.com");
+  });
+
+  it("refresh throws for expired token", async () => {
+    const prisma = buildPrisma();
+    const jwtService = { signAsync: jest.fn() } as any;
+    const service = new AuthService(prisma, jwtService);
+
+    prisma.refreshToken.findUnique.mockResolvedValue({
+      id: "rt1",
+      token: "expired-token",
+      userId: "u1",
+      expiresAt: new Date(Date.now() - 86400000),
+      user: { id: "u1", email: "test@example.com", role: "USER" }
+    });
+
+    await expect(service.refresh("expired-token")).rejects.toBeInstanceOf(
+      UnauthorizedException
+    );
+  });
+
+  it("refresh throws for non-existing token", async () => {
+    const prisma = buildPrisma();
+    const jwtService = { signAsync: jest.fn() } as any;
+    const service = new AuthService(prisma, jwtService);
+
+    prisma.refreshToken.findUnique.mockResolvedValue(null);
+
+    await expect(service.refresh("missing-token")).rejects.toBeInstanceOf(
+      UnauthorizedException
+    );
   });
 });
