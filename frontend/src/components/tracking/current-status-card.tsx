@@ -9,53 +9,44 @@ export default function CurrentStatusCard({
   lastEvent
 }: CurrentStatusCardProps) {
   return (
-    <div className="user-surface p-6 md:p-7">
-      <p className="user-label">Current Status</p>
-      <h2 className="user-display mt-3 text-3xl font-semibold text-stone-900">
-        What happened most recently
-      </h2>
+    <div className="user-surface p-5 md:p-6">
+      <h2 className="text-base font-bold text-stone-900">Latest Update</h2>
 
       {lastEvent ? (
-        <div className="mt-6 space-y-5">
-          <ShipmentStatusBadge status={lastEvent.status} />
-
-          <p className="text-sm text-stone-600">
-            {lastEvent.createdAt
-              ? new Date(lastEvent.createdAt).toLocaleString()
-              : "Timestamp unavailable"}
-          </p>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="user-panel p-4">
-              <p className="user-label">Delivery Note</p>
-              <p className="mt-2 text-sm leading-6 text-stone-700">
-                {lastEvent.note || "No note provided"}
-              </p>
-            </div>
-
-            <div className="user-panel p-4">
-              <p className="user-label">Shipment ID</p>
-              <p className="mt-2 break-all text-sm text-stone-700">
-                {lastEvent.shipmentId}
-              </p>
-            </div>
+        <div className="mt-4 space-y-3">
+          <div className="flex items-center gap-3">
+            <ShipmentStatusBadge status={lastEvent.status} />
+            <span className="text-xs text-stone-400">
+              {lastEvent.createdAt
+                ? new Date(lastEvent.createdAt).toLocaleString()
+                : "Unknown"}
+            </span>
           </div>
 
-          <div className="user-panel p-4">
-            <p className="user-label">Coordinates</p>
-            <p className="mt-2 text-sm text-stone-700">
-              {lastEvent.locationLat ?? "-"}, {lastEvent.locationLng ?? "-"}
+          <div className="user-panel p-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-stone-400">
+              Note
+            </p>
+            <p className="mt-1 text-sm text-stone-700">
+              {lastEvent.note || "No note provided"}
             </p>
           </div>
+
+          {(lastEvent.locationLat || lastEvent.locationLng) && (
+            <div className="user-panel p-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-stone-400">
+                Coordinates
+              </p>
+              <p className="mt-1 text-sm text-stone-700">
+                {lastEvent.locationLat ?? "-"}, {lastEvent.locationLng ?? "-"}
+              </p>
+            </div>
+          )}
         </div>
       ) : (
-        <div className="mt-6 rounded-[24px] border border-dashed border-stone-300 bg-stone-50/70 p-6">
-          <p className="text-base font-semibold text-stone-900">
-            Waiting for the first courier update
-          </p>
-          <p className="mt-2 text-sm leading-6 text-stone-600">
-            As soon as the courier changes the shipment status, this card will
-            surface the latest timestamp, note, and coordinates here.
+        <div className="mt-4 rounded-xl border border-dashed border-stone-300 bg-stone-50/70 p-4">
+          <p className="text-sm font-medium text-stone-600">
+            Waiting for the first courier update.
           </p>
         </div>
       )}
