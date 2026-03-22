@@ -11,7 +11,15 @@ import { JwtService } from "@nestjs/jwt";
 import { Server, Socket } from "socket.io";
 import { ShipmentsService } from "../shipments/shipments.service";
 
-@WebSocketGateway({ cors: { origin: true } })
+@WebSocketGateway({
+  cors: {
+    origin:
+      process.env.ALLOWED_ORIGINS?.split(",")
+        .map((s) => s.trim())
+        .filter(Boolean) ?? [],
+    credentials: true
+  }
+})
 export class TrackingGateway implements OnGatewayConnection {
   private readonly logger = new Logger(TrackingGateway.name);
 
