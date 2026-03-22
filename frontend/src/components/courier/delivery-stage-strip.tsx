@@ -17,7 +17,8 @@ export default function DeliveryStageStrip({
     <div className="mt-4 grid gap-2 md:grid-cols-4">
       {DELIVERY_STEPS.map((step, index) => {
         const isCurrent = step === status;
-        const isCompleted = currentStepIndex >= index && currentStepIndex !== -1;
+        const isCompleted =
+          currentStepIndex >= index && currentStepIndex !== -1;
 
         return (
           <div
@@ -26,8 +27,8 @@ export default function DeliveryStageStrip({
               isCurrent
                 ? "border-slate-900 bg-slate-900"
                 : isCompleted
-                ? "border-teal-200 bg-teal-50"
-                : "border-slate-200 bg-slate-50/80"
+                  ? "border-teal-200 bg-teal-50"
+                  : "border-slate-200 bg-slate-50/80"
             }`}
           >
             <p
@@ -35,8 +36,8 @@ export default function DeliveryStageStrip({
                 isCurrent
                   ? "text-white"
                   : isCompleted
-                  ? "text-teal-800"
-                  : "text-slate-500"
+                    ? "text-teal-800"
+                    : "text-slate-500"
               }`}
             >
               {step.replace("_", " ")}
