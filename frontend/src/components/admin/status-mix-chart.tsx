@@ -6,12 +6,36 @@ type StatusMixChartProps = {
 
 export default function StatusMixChart({ metrics }: StatusMixChartProps) {
   const bars = [
-    { label: "Created", value: metrics.created, color: "from-slate-500 to-slate-400" },
-    { label: "Assigned", value: metrics.assigned, color: "from-amber-500 to-amber-400" },
-    { label: "Picked Up", value: metrics.pickedUp ?? 0, color: "from-cyan-500 to-cyan-400" },
-    { label: "In Transit", value: metrics.inTransit, color: "from-sky-500 to-sky-400" },
-    { label: "Delivered", value: metrics.delivered, color: "from-emerald-500 to-emerald-400" },
-    { label: "Cancelled", value: metrics.cancelled ?? 0, color: "from-rose-500 to-rose-400" }
+    {
+      label: "Created",
+      value: metrics.created,
+      color: "from-slate-500 to-slate-400"
+    },
+    {
+      label: "Assigned",
+      value: metrics.assigned,
+      color: "from-amber-500 to-amber-400"
+    },
+    {
+      label: "Picked Up",
+      value: metrics.pickedUp ?? 0,
+      color: "from-cyan-500 to-cyan-400"
+    },
+    {
+      label: "In Transit",
+      value: metrics.inTransit,
+      color: "from-sky-500 to-sky-400"
+    },
+    {
+      label: "Delivered",
+      value: metrics.delivered,
+      color: "from-emerald-500 to-emerald-400"
+    },
+    {
+      label: "Cancelled",
+      value: metrics.cancelled ?? 0,
+      color: "from-rose-500 to-rose-400"
+    }
   ];
 
   const maxValue = Math.max(...bars.map((item) => item.value), 1);
@@ -25,7 +49,9 @@ export default function StatusMixChart({ metrics }: StatusMixChartProps) {
             Shipment distribution across the network
           </h2>
         </div>
-        <div className="admin-chip">{bars.reduce((sum, bar) => sum + bar.value, 0)} tracked statuses</div>
+        <div className="admin-chip">
+          {bars.reduce((sum, bar) => sum + bar.value, 0)} tracked statuses
+        </div>
       </div>
 
       <div className="mt-6 space-y-4">
