@@ -3,11 +3,20 @@ import "reflect-metadata";
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import helmet from "helmet";
 import { AppModule } from "./app.module";
 import { RequestLoggingInterceptor } from "./common/interceptors/request-logging.interceptor";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.use(
+    helmet({
+      contentSecurityPolicy:
+        process.env.NODE_ENV === "production" ? undefined : false,
+      crossOriginEmbedderPolicy: false
+    })
+  );
 
   const allowedOriginsEnv = process.env.ALLOWED_ORIGINS;
   const allowedOrigins =
@@ -19,7 +28,8 @@ async function bootstrap() {
   app.enableCors({
     origin:
       allowedOrigins.length > 0 ? allowedOrigins : "http://localhost:3000",
-    credentials: true
+    credentials: true,
+    maxAge: 86400
   });
 
   app.useGlobalInterceptors(new RequestLoggingInterceptor());
