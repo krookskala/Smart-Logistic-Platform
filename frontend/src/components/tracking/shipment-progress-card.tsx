@@ -6,7 +6,13 @@ type ShipmentProgressCardProps = {
   events: ShipmentUpdate[];
 };
 
-const STATUS_STEPS = ["CREATED", "ASSIGNED", "PICKED_UP", "IN_TRANSIT", "DELIVERED"];
+const STATUS_STEPS = [
+  "CREATED",
+  "ASSIGNED",
+  "PICKED_UP",
+  "IN_TRANSIT",
+  "DELIVERED"
+];
 
 function getStatusIndex(status?: string) {
   if (!status) {
@@ -35,7 +41,9 @@ export default function ShipmentProgressCard({
         <p className="mt-4 text-sm text-stone-500">Loading progress...</p>
       ) : isCancelled ? (
         <div className="mt-6 rounded-[24px] border border-red-200 bg-red-50 p-5">
-          <p className="text-sm font-semibold text-red-800">Shipment Cancelled</p>
+          <p className="text-sm font-semibold text-red-800">
+            Shipment Cancelled
+          </p>
           <p className="mt-2 text-sm leading-6 text-red-700">
             This delivery was cancelled before completion.
           </p>
@@ -54,8 +62,8 @@ export default function ShipmentProgressCard({
                     isCurrent
                       ? "border-stone-900 bg-stone-900 text-white shadow-lg shadow-stone-900/10"
                       : isComplete
-                      ? "border-emerald-200 bg-emerald-50"
-                      : "border-stone-200 bg-stone-50/80"
+                        ? "border-emerald-200 bg-emerald-50"
+                        : "border-stone-200 bg-stone-50/80"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -64,8 +72,8 @@ export default function ShipmentProgressCard({
                         isCurrent
                           ? "text-white"
                           : isComplete
-                          ? "text-emerald-800"
-                          : "text-stone-600"
+                            ? "text-emerald-800"
+                            : "text-stone-600"
                       }`}
                     >
                       {step.replace("_", " ")}
@@ -75,7 +83,11 @@ export default function ShipmentProgressCard({
                         isCurrent ? "text-stone-200" : "text-stone-500"
                       }`}
                     >
-                      {isCurrent ? "Current" : isComplete ? "Completed" : "Pending"}
+                      {isCurrent
+                        ? "Current"
+                        : isComplete
+                          ? "Completed"
+                          : "Pending"}
                     </span>
                   </div>
                 </div>
