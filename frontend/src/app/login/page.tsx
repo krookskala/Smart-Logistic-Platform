@@ -6,6 +6,7 @@ import { loginUser } from "../../lib/api";
 import { useRouter } from "next/navigation";
 import AuthShell from "../../components/auth/auth-shell";
 import AuthSidePanel from "../../components/auth/auth-side-panel";
+import AuthFormField from "../../components/auth/auth-form-field";
 import { useToast } from "../../components/toast-provider";
 
 export default function LoginPage() {
@@ -68,91 +69,67 @@ export default function LoginPage() {
   }
 
   return (
-    <>
-      <AuthShell
-        formAccent="sky"
-        sidePanel={
-          <AuthSidePanel
-            eyebrow="Secure Access"
-            title="Return to the workspace that keeps your logistics operations moving."
-            description="Sign in to access the Smart Logistics environment assigned to your role, review current activity, and continue from the operational context already in progress."
-            highlights={[
-              "Role-aware access for customers, couriers, and administrators",
-              "Immediate visibility into active shipments and delivery progress",
-              "A cleaner interface for coordinated logistics work"
-            ]}
-            accent="sky"
-          />
-        }
-        formPanel={
-          <div>
-            <p className="landing-label">Workspace Access</p>
-            <h2 className="landing-display mt-4 text-4xl font-semibold text-slate-950">
-              Sign in
-            </h2>
-            <p className="landing-muted mt-3 text-base leading-8">
-              Use your account credentials to open the Smart Logistics workspace
-              assigned to your responsibilities.
-            </p>
+    <AuthShell
+      sidePanel={
+        <AuthSidePanel
+          title="Welcome back"
+          subtitle="Sign in to continue managing your shipments and deliveries."
+        />
+      }
+      formPanel={
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-slate-950">
+            Sign in
+          </h2>
+          <p className="landing-muted mt-2 text-sm">
+            Enter your credentials to continue.
+          </p>
 
-            <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-              <div>
-                <label className="text-sm font-medium text-slate-700">
-                  Email
-                </label>
-                <input
-                  className="auth-input mt-2"
-                  type="email"
-                  placeholder="you@company.com"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  required
-                  disabled={submitting || redirecting}
-                />
-              </div>
+          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+            <AuthFormField
+              label="Email"
+              type="email"
+              placeholder="you@company.com"
+              value={form.email}
+              onChange={(v) => setForm({ ...form, email: v })}
+              required
+              disabled={submitting || redirecting}
+            />
 
-              <div>
-                <label className="text-sm font-medium text-slate-700">
-                  Password
-                </label>
-                <input
-                  className="auth-input mt-2"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={form.password}
-                  onChange={(e) =>
-                    setForm({ ...form, password: e.target.value })
-                  }
-                  required
-                  disabled={submitting || redirecting}
-                />
-              </div>
+            <AuthFormField
+              label="Password"
+              type="password"
+              placeholder="Enter your password"
+              value={form.password}
+              onChange={(v) => setForm({ ...form, password: v })}
+              required
+              disabled={submitting || redirecting}
+            />
 
-              <button
-                type="submit"
-                disabled={submitting || redirecting}
-                className="w-full rounded-full bg-slate-950 px-5 py-3 text-base font-semibold text-white transition disabled:opacity-60"
-              >
-                {submitting
-                  ? "Signing In..."
-                  : redirecting
-                    ? "Redirecting..."
-                    : "Sign In"}
-              </button>
-            </form>
+            <button
+              type="submit"
+              disabled={submitting || redirecting}
+              className="landing-gradient-btn w-full"
+            >
+              {submitting
+                ? "Signing In..."
+                : redirecting
+                  ? "Redirecting..."
+                  : "Sign In"}
+            </button>
+          </form>
 
-            <p className="mt-6 text-sm text-slate-600">
-              New to Smart Logistics?{" "}
-              <Link
-                href="/register"
-                className="font-semibold text-slate-950 underline"
-              >
-                Create your account
-              </Link>
-            </p>
-          </div>
-        }
-      />
-    </>
+          <p className="mt-6 text-sm text-slate-600">
+            New to Smart Logistics?{" "}
+            <Link
+              href="/register"
+              className="font-semibold text-blue-600 hover:text-blue-700"
+            >
+              Create your account
+            </Link>
+          </p>
+        </div>
+      }
+    />
   );
 }
