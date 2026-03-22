@@ -67,7 +67,9 @@ export default function LandingHero({
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
             <div className="rounded-[26px] border border-emerald-200 bg-emerald-50/80 p-5">
-              <p className="landing-label text-emerald-700">Role-Aware Workspaces</p>
+              <p className="landing-label text-emerald-700">
+                Role-Aware Workspaces
+              </p>
               <p className="mt-3 text-sm leading-7 text-emerald-900">
                 Dedicated workspaces for customers, couriers, and administrators
                 keep each role focused on the right decisions.
@@ -77,8 +79,8 @@ export default function LandingHero({
             <div className="rounded-[26px] border border-sky-200 bg-sky-50/80 p-5">
               <p className="landing-label text-sky-700">Operational Trust</p>
               <p className="mt-3 text-sm leading-7 text-sky-900">
-                Audit history, workflow validation, and structured feedback flows
-                make operational changes easier to trust.
+                Audit history, workflow validation, and structured feedback
+                flows make operational changes easier to trust.
               </p>
             </div>
           </div>
