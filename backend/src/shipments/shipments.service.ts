@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException
+} from "@nestjs/common";
+import { Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
 import { AccessControlService } from "../auth/access-control.service";
@@ -59,8 +64,10 @@ export class ShipmentsService {
     } as const;
   }
 
-  private buildAdminShipmentWhere(query: ListShipmentsQueryDto): PrismaLikeWhereInput {
-    const andFilters: PrismaLikeWhereInput[] = [];
+  private buildAdminShipmentWhere(
+    query: ListShipmentsQueryDto
+  ): Prisma.ShipmentWhereInput {
+    const andFilters: Prisma.ShipmentWhereInput[] = [];
 
     if (query.search) {
       andFilters.push({
@@ -114,40 +121,74 @@ export class ShipmentsService {
     });
   }
 
-  async findAll(user: { userId: string; role: string }, query: ListShipmentsQueryDto) {
+  async findAll(
+    user: { userId: string; role: string },
+    query: ListShipmentsQueryDto
+  ) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    const skip = (page - 1) * limit;
+
     if (user.role === "ADMIN") {
-      return this.prisma.shipment.findMany({
-        where: this.buildAdminShipmentWhere(query) as never,
-        orderBy: {
-          [query.sortBy ?? "createdAt"]: query.sortOrder ?? "desc"
-        } as never,
-        include: this.getShipmentInclude()
-      });
+      const where = this.buildAdminShipmentWhere(query);
+      const orderBy: Prisma.ShipmentOrderByWithRelationInput = {
+        [query.sortBy ?? "createdAt"]: query.sortOrder ?? "desc"
+      };
+      const [data, total] = await Promise.all([
+        this.prisma.shipment.findMany({
+          where,
+          orderBy,
+          include: this.getShipmentInclude(),
+          skip,
+          take: limit
+        }),
+        this.prisma.shipment.count({ where })
+      ]);
+      return {
+        data,
+        meta: { total, page, limit, totalPages: Math.ceil(total / limit) }
+      };
     }
 
     if (user.role === "COURIER") {
       const courier = await this.getCourierByUserId(user.userId);
 
       if (!courier) {
-        return [];
+        return { data: [], meta: { total: 0, page, limit, totalPages: 0 } };
       }
 
-      return this.prisma.shipment.findMany({
-        where: {
-          assignedCourierId: courier.id
-        },
-        orderBy: { createdAt: "desc" },
-        include: this.getShipmentInclude()
-      });
+      const where = { assignedCourierId: courier.id };
+      const [data, total] = await Promise.all([
+        this.prisma.shipment.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          include: this.getShipmentInclude(),
+          skip,
+          take: limit
+        }),
+        this.prisma.shipment.count({ where })
+      ]);
+      return {
+        data,
+        meta: { total, page, limit, totalPages: Math.ceil(total / limit) }
+      };
     }
 
-    return this.prisma.shipment.findMany({
-      where: {
-        createdById: user.userId
-      },
-      orderBy: { createdAt: "desc" },
-      include: this.getShipmentInclude()
-    });
+    const where = { createdById: user.userId };
+    const [data, total] = await Promise.all([
+      this.prisma.shipment.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        include: this.getShipmentInclude(),
+        skip,
+        take: limit
+      }),
+      this.prisma.shipment.count({ where })
+    ]);
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) }
+    };
   }
 
   async findOne(id: string, user: { userId: string; role: string }) {
@@ -168,31 +209,23 @@ export class ShipmentsService {
       );
     }
 
-    if (user.role === "ADMIN") {
-      return this.prisma.shipment.update({
-        where: { id },
-        data: {
-          title: dto.title,
-          description: dto.description,
-          pickupAddress: dto.pickupAddress,
-          deliveryAddress: dto.deliveryAddress
-        }
-      });
+    const canEdit =
+      user.role === "ADMIN" ||
+      (user.role === "USER" && shipment.createdById === user.userId);
+
+    if (!canEdit) {
+      throw new NotFoundException("Shipment Not Found");
     }
 
-    if (user.role === "USER" && shipment.createdById === user.userId) {
-      return this.prisma.shipment.update({
-        where: { id },
-        data: {
-          title: dto.title,
-          description: dto.description,
-          pickupAddress: dto.pickupAddress,
-          deliveryAddress: dto.deliveryAddress
-        }
-      });
-    }
-
-    throw new NotFoundException("Shipment Not Found");
+    return this.prisma.shipment.update({
+      where: { id },
+      data: {
+        title: dto.title,
+        description: dto.description,
+        pickupAddress: dto.pickupAddress,
+        deliveryAddress: dto.deliveryAddress
+      }
+    });
   }
 
   async assignCourier(
@@ -259,7 +292,7 @@ export class ShipmentsService {
     const cancelledShipment = await this.prisma.shipment.update({
       where: { id },
       data: {
-        status: "CANCELLED" as never,
+        status: "CANCELLED",
         assignedCourierId: null
       }
     });
@@ -279,44 +312,25 @@ export class ShipmentsService {
   }
 
   async getMetrics() {
-    const total = await this.prisma.shipment.count();
-    const delivered = await this.prisma.shipment.count({
-      where: { status: "DELIVERED" }
+    const groups = await this.prisma.shipment.groupBy({
+      by: ["status"],
+      _count: true
     });
-    const inTransit = await this.prisma.shipment.count({
-      where: { status: "IN_TRANSIT" }
-    });
-    const pickedUp = await this.prisma.shipment.count({
-      where: { status: "PICKED_UP" }
-    });
-    const assigned = await this.prisma.shipment.count({
-      where: { status: "ASSIGNED" }
-    });
-    const created = await this.prisma.shipment.count({
-      where: { status: "CREATED" }
-    });
-    const cancelled = await this.prisma.shipment.count({
-      where: { status: "CANCELLED" as never }
-    });
+
+    const countByStatus = Object.fromEntries(
+      groups.map((g) => [g.status, g._count])
+    );
+
+    const total = groups.reduce((sum, g) => sum + g._count, 0);
 
     return {
       total,
-      delivered,
-      pickedUp,
-      inTransit,
-      assigned,
-      created,
-      cancelled
+      delivered: countByStatus["DELIVERED"] ?? 0,
+      pickedUp: countByStatus["PICKED_UP"] ?? 0,
+      inTransit: countByStatus["IN_TRANSIT"] ?? 0,
+      assigned: countByStatus["ASSIGNED"] ?? 0,
+      created: countByStatus["CREATED"] ?? 0,
+      cancelled: countByStatus["CANCELLED"] ?? 0
     };
   }
 }
-
-type PrismaLikeWhereInput = {
-  AND?: PrismaLikeWhereInput[];
-  OR?: PrismaLikeWhereInput[];
-  title?: { contains: string; mode: "insensitive" };
-  pickupAddress?: { contains: string; mode: "insensitive" };
-  deliveryAddress?: { contains: string; mode: "insensitive" };
-  status?: string;
-  assignedCourierId?: string;
-};
