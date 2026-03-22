@@ -60,13 +60,18 @@ export default function AuthNav() {
 
   if (loggedIn) {
     return (
-      <button
-        onClick={handleLogout}
-        disabled={loggingOut}
-        className="text-gray-700 hover:text-black disabled:opacity-60"
-      >
-        {loggingOut ? "Logging out..." : "Logout"}
-      </button>
+      <>
+        <Link href="/profile" className="text-gray-700 hover:text-black">
+          Profile
+        </Link>
+        <button
+          onClick={handleLogout}
+          disabled={loggingOut}
+          className="text-gray-700 hover:text-black disabled:opacity-60"
+        >
+          {loggingOut ? "Logging out..." : "Logout"}
+        </button>
+      </>
     );
   }
 
