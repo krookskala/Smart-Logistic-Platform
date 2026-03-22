@@ -31,24 +31,41 @@ function ToastViewport({ toast }: { toast: ToastState }) {
     return null;
   }
 
-  const accentClass =
-    toast.type === "success" ? "toast-success" : "toast-error";
-  const dotClass = toast.type === "success" ? "bg-emerald-500" : "bg-rose-500";
-  const badgeClass =
-    toast.type === "success"
-      ? "bg-emerald-100 text-emerald-800"
-      : "bg-rose-100 text-rose-800";
-  const label = toast.type === "success" ? "Success" : "Action Needed";
+  const isSuccess = toast.type === "success";
 
   return (
     <div className="toast-viewport">
-      <div key={toast.id} className={`toast-card ${accentClass}`}>
-        <div className={`toast-accent ${dotClass}`} />
+      <div
+        key={toast.id}
+        className={`toast-card ${isSuccess ? "toast-success" : "toast-error"}`}
+      >
+        <div
+          className={`toast-icon ${isSuccess ? "toast-icon-success" : "toast-icon-error"}`}
+        >
+          {isSuccess ? (
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M3.5 8.5L6.5 11.5L12.5 4.5"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M4.5 4.5L11.5 11.5M11.5 4.5L4.5 11.5"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          )}
+        </div>
         <div className="min-w-0">
-          <div className="flex items-center gap-3">
-            <span className={`toast-badge ${badgeClass}`}>{label}</span>
-          </div>
-          <p className="toast-message mt-3">{toast.message}</p>
+          <p className="toast-label">{isSuccess ? "Success" : "Error"}</p>
+          <p className="toast-message">{toast.message}</p>
         </div>
       </div>
     </div>
