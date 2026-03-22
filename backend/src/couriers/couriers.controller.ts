@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Patch, Post, Request, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Request,
+  UseGuards
+} from "@nestjs/common";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { CouriersService } from "./couriers.service";
 import { CreateCourierDto } from "./dto/create-courier.dto";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
@@ -7,6 +16,8 @@ import { RolesGuard } from "../auth/roles.guard";
 import { UpdateMyAvailabilityDto } from "./dto/update-my-availability.dto";
 import { AuthUser } from "../auth/auth-user.type";
 
+@ApiTags("Couriers")
+@ApiBearerAuth()
 @Controller("couriers")
 export class CouriersController {
   constructor(private readonly couriersService: CouriersService) {}
