@@ -41,30 +41,25 @@ export default function StatusMixChart({ metrics }: StatusMixChartProps) {
   const maxValue = Math.max(...bars.map((item) => item.value), 1);
 
   return (
-    <div className="admin-surface p-6 md:p-7">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="admin-label">Status Mix</p>
-          <h2 className="mt-3 text-2xl font-semibold text-slate-950">
-            Shipment distribution across the network
-          </h2>
-        </div>
-        <div className="admin-chip">
-          {bars.reduce((sum, bar) => sum + bar.value, 0)} tracked statuses
-        </div>
+    <div className="admin-surface p-5 md:p-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold text-slate-950">Status Mix</h2>
+        <span className="text-xs text-slate-500">
+          {bars.reduce((sum, bar) => sum + bar.value, 0)} total
+        </span>
       </div>
 
-      <div className="mt-6 space-y-4">
+      <div className="mt-4 space-y-3">
         {bars.map((bar) => (
-          <div key={bar.label} className="admin-panel p-4">
-            <div className="mb-2 flex items-center justify-between text-sm text-slate-700">
+          <div key={bar.label} className="admin-panel p-3">
+            <div className="mb-1.5 flex items-center justify-between text-sm text-slate-700">
               <span>{bar.label}</span>
               <span className="font-semibold">{bar.value}</span>
             </div>
 
-            <div className="h-3 rounded-full bg-slate-100">
+            <div className="h-2.5 rounded-full bg-slate-100">
               <div
-                className={`h-3 rounded-full bg-gradient-to-r ${bar.color}`}
+                className={`h-2.5 rounded-full bg-gradient-to-r ${bar.color}`}
                 style={{
                   width: `${(bar.value / maxValue) * 100}%`
                 }}
