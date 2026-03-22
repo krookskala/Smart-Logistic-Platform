@@ -1,19 +1,23 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Query,
   Param,
   Post,
   Patch,
   UseGuards,
+  UseInterceptors,
   Request
 } from "@nestjs/common";
+import { CacheInterceptor, CacheTTL } from "@nestjs/cache-manager";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { ShipmentsService } from "./shipments.service";
 import { CreateShipmentDto } from "./dto/create-shipment.dto";
 import { UpdateShipmentDto } from "./dto/update-shipment.dto";
 import { AssignCourierDto } from "./dto/assign-courier.dto";
+import { DelayShipmentDto } from "./dto/delay-shipment.dto";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Roles } from "../auth/roles.decorator";
 import { RolesGuard } from "../auth/roles.guard";
@@ -45,9 +49,20 @@ export class ShipmentsController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("ADMIN")
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(30000)
   @Get("metrics")
   getMetrics() {
     return this.shipmentsService.getMetrics();
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("ADMIN")
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(60000)
+  @Get("analytics")
+  getAnalytics() {
+    return this.shipmentsService.getAnalytics();
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -88,5 +103,23 @@ export class ShipmentsController {
   @Post(":id/cancel")
   cancel(@Param("id") id: string, @Request() req: { user: AuthUser }) {
     return this.shipmentsService.cancel(id, req.user);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("ADMIN")
+  @Delete(":id")
+  remove(@Param("id") id: string, @Request() req: { user: AuthUser }) {
+    return this.shipmentsService.remove(id, req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("ADMIN")
+  @Post(":id/delay")
+  delay(
+    @Param("id") id: string,
+    @Body() dto: DelayShipmentDto,
+    @Request() req: { user: AuthUser }
+  ) {
+    return this.shipmentsService.delay(id, dto, req.user.userId);
   }
 }
