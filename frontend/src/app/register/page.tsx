@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { registerUser } from "../../lib/api";
 import AuthShell from "../../components/auth/auth-shell";
 import AuthSidePanel from "../../components/auth/auth-side-panel";
+import AuthFormField from "../../components/auth/auth-form-field";
 import { useToast } from "../../components/toast-provider";
 
 export default function RegisterPage() {
@@ -57,91 +58,67 @@ export default function RegisterPage() {
   }
 
   return (
-    <>
-      <AuthShell
-        formAccent="amber"
-        sidePanel={
-          <AuthSidePanel
-            eyebrow="New Account Setup"
-            title="Create your Smart Logistics account and step into a clearer delivery workflow."
-            description="Register once to start using a role-aware logistics platform built for shipment visibility, operational coordination, and dependable delivery oversight."
-            highlights={[
-              "Get access to a workflow designed for modern delivery teams",
-              "Move from account setup into the right workspace with minimal friction",
-              "Start with structured shipment tracking and role-based operations"
-            ]}
-            accent="amber"
-          />
-        }
-        formPanel={
-          <div>
-            <p className="landing-label">Platform Onboarding</p>
-            <h2 className="landing-display mt-4 text-4xl font-semibold text-slate-950">
-              Create account
-            </h2>
-            <p className="landing-muted mt-3 text-base leading-8">
-              Set up your Smart Logistics account to access the platform and
-              continue into the workspace aligned with your role.
-            </p>
+    <AuthShell
+      sidePanel={
+        <AuthSidePanel
+          title="Get started today"
+          subtitle="Create an account to start tracking shipments and managing deliveries."
+        />
+      }
+      formPanel={
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-slate-950">
+            Create account
+          </h2>
+          <p className="landing-muted mt-2 text-sm">
+            Set up your account to get started.
+          </p>
 
-            <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-              <div>
-                <label className="text-sm font-medium text-slate-700">
-                  Email
-                </label>
-                <input
-                  className="auth-input mt-2"
-                  type="email"
-                  placeholder="you@company.com"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  required
-                  disabled={submitting || redirecting}
-                />
-              </div>
+          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+            <AuthFormField
+              label="Email"
+              type="email"
+              placeholder="you@company.com"
+              value={form.email}
+              onChange={(v) => setForm({ ...form, email: v })}
+              required
+              disabled={submitting || redirecting}
+            />
 
-              <div>
-                <label className="text-sm font-medium text-slate-700">
-                  Password
-                </label>
-                <input
-                  className="auth-input mt-2"
-                  type="password"
-                  placeholder="Create a secure password"
-                  value={form.password}
-                  onChange={(e) =>
-                    setForm({ ...form, password: e.target.value })
-                  }
-                  required
-                  disabled={submitting || redirecting}
-                />
-              </div>
+            <AuthFormField
+              label="Password"
+              type="password"
+              placeholder="Create a secure password"
+              value={form.password}
+              onChange={(v) => setForm({ ...form, password: v })}
+              required
+              disabled={submitting || redirecting}
+            />
 
-              <button
-                type="submit"
-                disabled={submitting || redirecting}
-                className="w-full rounded-full bg-slate-950 px-5 py-3 text-base font-semibold text-white transition disabled:opacity-60"
-              >
-                {submitting
-                  ? "Creating Account..."
-                  : redirecting
-                    ? "Redirecting..."
-                    : "Create Account"}
-              </button>
-            </form>
+            <button
+              type="submit"
+              disabled={submitting || redirecting}
+              className="landing-gradient-btn w-full"
+            >
+              {submitting
+                ? "Creating Account..."
+                : redirecting
+                  ? "Redirecting..."
+                  : "Create Account"}
+            </button>
+          </form>
 
-            <p className="mt-6 text-sm text-slate-600">
-              Already registered?{" "}
-              <Link
-                href="/login"
-                className="font-semibold text-slate-950 underline"
-              >
-                Sign in instead
-              </Link>
-            </p>
-          </div>
-        }
-      />
-    </>
+          <p className="mt-6 text-sm text-slate-600">
+            Already registered?{" "}
+            <Link
+              href="/login"
+              className="font-semibold text-blue-600 hover:text-blue-700"
+            >
+              Sign in instead
+            </Link>
+          </p>
+        </div>
+      }
+    />
   );
 }
