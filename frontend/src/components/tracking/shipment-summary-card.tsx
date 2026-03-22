@@ -9,73 +9,59 @@ export default function ShipmentSummaryCard({
   shipment
 }: ShipmentSummaryCardProps) {
   return (
-    <div className="user-surface p-6 md:p-7">
-      <p className="user-label">Shipment Summary</p>
-      <h2 className="user-display mt-3 text-3xl font-semibold text-stone-900">
-        Delivery context at a glance
-      </h2>
+    <div className="user-surface p-5 md:p-6">
+      <h2 className="text-base font-bold text-stone-900">Summary</h2>
 
       {!shipment ? (
-        <p className="mt-4 text-sm text-stone-500">
-          Loading shipment details...
-        </p>
+        <p className="mt-3 text-sm text-stone-500">Loading...</p>
       ) : (
-        <div className="mt-6 space-y-5">
-          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="mt-4 space-y-4">
+          <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-lg font-semibold text-stone-900">
-                {shipment.title}
-              </p>
-              <p className="mt-2 text-sm leading-6 text-stone-600">
-                {shipment.description || "No description provided."}
-              </p>
+              <p className="font-semibold text-stone-900">{shipment.title}</p>
+              {shipment.description ? (
+                <p className="mt-1 text-sm text-stone-500">
+                  {shipment.description}
+                </p>
+              ) : null}
             </div>
-
             <ShipmentStatusBadge status={shipment.status} />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="user-panel p-4">
-              <p className="user-label">Pickup</p>
-              <p className="mt-2 text-sm leading-6 text-stone-700">
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="user-panel p-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-stone-400">
+                Pickup
+              </p>
+              <p className="mt-1 text-sm text-stone-700">
                 {shipment.pickupAddress}
               </p>
             </div>
-
-            <div className="user-panel p-4">
-              <p className="user-label">Delivery</p>
-              <p className="mt-2 text-sm leading-6 text-stone-700">
+            <div className="user-panel p-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-stone-400">
+                Delivery
+              </p>
+              <p className="mt-1 text-sm text-stone-700">
                 {shipment.deliveryAddress}
               </p>
             </div>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <div className="user-panel p-4">
-              <p className="user-label">Created</p>
-              <p className="mt-2 text-sm text-stone-700">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="user-panel p-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-stone-400">
+                Created
+              </p>
+              <p className="mt-1 text-sm text-stone-700">
                 {new Date(shipment.createdAt).toLocaleString()}
               </p>
             </div>
-
-            <div className="user-panel p-4">
-              <p className="user-label">Shipment ID</p>
-              <p className="mt-2 break-all text-sm text-stone-700">
-                {shipment.id}
+            <div className="user-panel p-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-stone-400">
+                Courier
               </p>
-            </div>
-
-            <div className="user-panel p-4">
-              <p className="user-label">Assigned Courier</p>
-              <p className="mt-2 text-sm text-stone-700">
-                {shipment.assignedCourier?.user.email ?? "Not assigned yet"}
-              </p>
-            </div>
-
-            <div className="user-panel p-4">
-              <p className="user-label">Created By</p>
-              <p className="mt-2 text-sm text-stone-700">
-                {shipment.createdBy?.email ?? shipment.createdById}
+              <p className="mt-1 text-sm text-stone-700">
+                {shipment.assignedCourier?.user.email ?? "Not assigned"}
               </p>
             </div>
           </div>
