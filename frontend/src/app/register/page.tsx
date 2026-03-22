@@ -86,7 +86,9 @@ export default function RegisterPage() {
 
             <form onSubmit={handleSubmit} className="mt-8 space-y-5">
               <div>
-                <label className="text-sm font-medium text-slate-700">Email</label>
+                <label className="text-sm font-medium text-slate-700">
+                  Email
+                </label>
                 <input
                   className="auth-input mt-2"
                   type="email"
@@ -107,7 +109,9 @@ export default function RegisterPage() {
                   type="password"
                   placeholder="Create a secure password"
                   value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, password: e.target.value })
+                  }
                   required
                   disabled={submitting || redirecting}
                 />
@@ -121,14 +125,17 @@ export default function RegisterPage() {
                 {submitting
                   ? "Creating Account..."
                   : redirecting
-                  ? "Redirecting..."
-                  : "Create Account"}
+                    ? "Redirecting..."
+                    : "Create Account"}
               </button>
             </form>
 
             <p className="mt-6 text-sm text-slate-600">
               Already registered?{" "}
-              <Link href="/login" className="font-semibold text-slate-950 underline">
+              <Link
+                href="/login"
+                className="font-semibold text-slate-950 underline"
+              >
                 Sign in instead
               </Link>
             </p>
