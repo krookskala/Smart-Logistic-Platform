@@ -9,6 +9,7 @@ import {
   UseGuards,
   Request
 } from "@nestjs/common";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { ShipmentsService } from "./shipments.service";
 import { CreateShipmentDto } from "./dto/create-shipment.dto";
 import { UpdateShipmentDto } from "./dto/update-shipment.dto";
@@ -19,6 +20,8 @@ import { RolesGuard } from "../auth/roles.guard";
 import { AuthUser } from "../auth/auth-user.type";
 import { ListShipmentsQueryDto } from "./dto/list-shipments-query.dto";
 
+@ApiTags("Shipments")
+@ApiBearerAuth()
 @Controller("shipments")
 export class ShipmentsController {
   constructor(private readonly shipmentsService: ShipmentsService) {}
