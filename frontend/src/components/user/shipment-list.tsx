@@ -54,7 +54,8 @@ export default function ShipmentList({
                 {shipment.title}
               </h2>
               <p className="user-muted mt-2 text-sm leading-6">
-                {shipment.description || "No extra shipment notes were provided."}
+                {shipment.description ||
+                  "No extra shipment notes were provided."}
               </p>
             </div>
 
@@ -98,7 +99,9 @@ export default function ShipmentList({
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <span className="user-chip">ID {shipment.id.slice(0, 8)}</span>
+                  <span className="user-chip">
+                    ID {shipment.id.slice(0, 8)}
+                  </span>
                   <span className="user-chip">
                     {shipment.status === "CREATED"
                       ? "Editable"
@@ -141,7 +144,9 @@ export default function ShipmentList({
                   : "border border-red-100 bg-red-50/70 text-red-300 cursor-not-allowed"
               } disabled:opacity-60`}
             >
-              {cancellingShipmentId === shipment.id ? "Cancelling..." : "Cancel"}
+              {cancellingShipmentId === shipment.id
+                ? "Cancelling..."
+                : "Cancel"}
             </button>
           </div>
 
@@ -155,8 +160,8 @@ export default function ShipmentList({
                   </h3>
                 </div>
                 <p className="user-muted text-sm">
-                  Editing stays available only while the shipment is still in the
-                  created stage.
+                  Editing stays available only while the shipment is still in
+                  the created stage.
                 </p>
               </div>
 
@@ -200,7 +205,9 @@ export default function ShipmentList({
                   disabled={savingShipmentId === shipment.id}
                   className="rounded-full bg-stone-900 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-stone-900/10 transition hover:bg-stone-800 disabled:opacity-60"
                 >
-                  {savingShipmentId === shipment.id ? "Saving..." : "Save changes"}
+                  {savingShipmentId === shipment.id
+                    ? "Saving..."
+                    : "Save changes"}
                 </button>
                 <button
                   type="button"
