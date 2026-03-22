@@ -35,16 +35,10 @@ export default function TrackingUpdateForm({
   const hasNextTransition = nextStatusOptions.length > 0;
 
   return (
-    <div className="mt-4 rounded-[24px] border border-slate-200 bg-slate-50/80 p-4">
-      <p className="courier-label">Tracking Update</p>
-      <h3 className="mt-2 text-base font-semibold text-slate-900">
-        {hasNextTransition
-          ? "Submit the next delivery update"
-          : "No further courier update required"}
+    <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+      <h3 className="text-sm font-bold text-slate-900">
+        {hasNextTransition ? "Update Status" : "Delivery Complete"}
       </h3>
-      <p className="mt-1 text-sm text-slate-600">
-        Current workflow stage: {currentStatus.replace("_", " ")}
-      </p>
 
       {hasNextTransition ? (
         <>
@@ -54,7 +48,7 @@ export default function TrackingUpdateForm({
                 Next Status
               </label>
               <select
-                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none"
                 value={form.status}
                 onChange={(e) => onChange("status", e.target.value)}
                 disabled={!hasNextTransition}
@@ -68,17 +62,15 @@ export default function TrackingUpdateForm({
             </div>
 
             <div>
-              <label className="text-sm font-medium text-slate-700">
-                Delivery Note
-              </label>
+              <label className="text-sm font-medium text-slate-700">Note</label>
               <input
-                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none placeholder:text-slate-400"
                 value={form.note}
                 onChange={(e) => onChange("note", e.target.value)}
                 placeholder={
                   form.status === "DELIVERED"
-                    ? "Required when completing delivery"
-                    : "Optional courier note"
+                    ? "Required for delivery"
+                    : "Optional note"
                 }
               />
             </div>
@@ -88,7 +80,7 @@ export default function TrackingUpdateForm({
                 Latitude
               </label>
               <input
-                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none placeholder:text-slate-400"
                 value={form.locationLat}
                 onChange={(e) => onChange("locationLat", e.target.value)}
                 placeholder="Optional"
@@ -100,7 +92,7 @@ export default function TrackingUpdateForm({
                 Longitude
               </label>
               <input
-                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none placeholder:text-slate-400"
                 value={form.locationLng}
                 onChange={(e) => onChange("locationLng", e.target.value)}
                 placeholder="Optional"
@@ -112,20 +104,15 @@ export default function TrackingUpdateForm({
             type="button"
             onClick={onSubmit}
             disabled={submitting || !hasNextTransition}
-            className="mt-4 rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/10 transition hover:bg-slate-800 disabled:opacity-60"
+            className="courier-btn-primary mt-4 px-4 py-2.5 text-sm"
           >
-            {submitting ? "Submitting..." : "Submit tracking update"}
+            {submitting ? "Submitting..." : "Submit Update"}
           </button>
         </>
       ) : (
-        <div className="mt-4 rounded-[18px] border border-dashed border-slate-300 bg-white/70 p-4">
-          <p className="text-sm font-semibold text-slate-900">
-            This delivery has already been completed.
-          </p>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
-            No further courier actions are available for this shipment.
-          </p>
-        </div>
+        <p className="mt-2 text-sm text-slate-500">
+          No further actions available.
+        </p>
       )}
     </div>
   );
