@@ -1,4 +1,14 @@
-import { IsIn, IsOptional, IsString } from "class-validator";
+import {
+  IsEnum,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min
+} from "class-validator";
+import { Type } from "class-transformer";
+import { ShipmentStatus } from "@prisma/client";
 
 export class ListShipmentsQueryDto {
   @IsOptional()
@@ -6,8 +16,8 @@ export class ListShipmentsQueryDto {
   search?: string;
 
   @IsOptional()
-  @IsString()
-  status?: string;
+  @IsEnum(ShipmentStatus)
+  status?: ShipmentStatus;
 
   @IsOptional()
   @IsString()
@@ -20,4 +30,17 @@ export class ListShipmentsQueryDto {
   @IsOptional()
   @IsIn(["asc", "desc"])
   sortOrder?: "asc" | "desc";
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number;
 }
