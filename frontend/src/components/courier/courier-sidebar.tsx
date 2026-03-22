@@ -40,7 +40,8 @@ export default function CourierSidebar({
           </h1>
           <p className="mt-3 max-w-md text-sm leading-6 text-slate-100/85">
             Manage assigned deliveries, keep active routes progressing, and
-            submit operational updates with confidence from one focused workspace.
+            submit operational updates with confidence from one focused
+            workspace.
           </p>
         </div>
       </section>
