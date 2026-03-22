@@ -536,6 +536,72 @@ export async function fetchTrackingEvents(
   return res.json();
 }
 
+export type UserProfile = {
+  id: string;
+  email: string;
+  role: string;
+  createdAt: string;
+  courier?: {
+    id: string;
+    vehicleType?: string | null;
+    availability?: boolean;
+  } | null;
+};
+
+export async function fetchMyProfile(): Promise<UserProfile> {
+  const res = await fetch(`${API_BASE_URL}/auth/me`, {
+    headers: {
+      ...getAuthHeaders()
+    }
+  });
+
+  if (!res.ok) {
+    await handleFetchError(res, "Failed to fetch profile");
+  }
+
+  return res.json();
+}
+
+export async function changePassword(input: {
+  currentPassword: string;
+  newPassword: string;
+}) {
+  const res = await fetch(`${API_BASE_URL}/auth/change-password`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(input)
+  });
+
+  if (!res.ok) {
+    await handleFetchError(res, "Failed to change password");
+  }
+
+  return res.json();
+}
+
+export async function changeEmail(input: {
+  newEmail: string;
+  currentPassword: string;
+}) {
+  const res = await fetch(`${API_BASE_URL}/auth/change-email`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(input)
+  });
+
+  if (!res.ok) {
+    await handleFetchError(res, "Failed to change email");
+  }
+
+  return res.json();
+}
+
 export async function fetchAuditLogs(
   params: {
     actionType?: string;
