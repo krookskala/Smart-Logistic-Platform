@@ -29,8 +29,8 @@ export default function AuditLogPanel({
             Trace operational actions and platform changes
           </h2>
           <p className="mt-2 text-sm text-slate-600">
-            Filter by actor, target, or action type to reconstruct what
-            changed across shipments, courier operations, and access control.
+            Filter by actor, target, or action type to reconstruct what changed
+            across shipments, courier operations, and access control.
           </p>
         </div>
         <div className="admin-chip">{logs.length} matching events</div>
@@ -72,7 +72,10 @@ export default function AuditLogPanel({
           className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900"
           value={filters.sortOrder}
           onChange={(e) =>
-            onChange("sortOrder", e.target.value as AuditLogFilters["sortOrder"])
+            onChange(
+              "sortOrder",
+              e.target.value as AuditLogFilters["sortOrder"]
+            )
           }
         >
           <option value="desc">Newest first</option>
@@ -87,10 +90,7 @@ export default function AuditLogPanel({
       ) : (
         <div className="mt-6 space-y-3">
           {logs.map((log) => (
-            <div
-              key={log.id}
-              className="admin-panel p-5"
-            >
+            <div key={log.id} className="admin-panel p-5">
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div>
                   <p className="admin-label">{log.targetType}</p>
