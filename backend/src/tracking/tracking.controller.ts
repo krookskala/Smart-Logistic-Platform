@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseUUIDPipe,
   Post,
   UseGuards,
   Request
@@ -25,7 +26,7 @@ export class TrackingController {
   @Roles("COURIER", "ADMIN")
   @Post(":id/tracking")
   create(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: CreateTrackingDto,
     @Request() req: { user: AuthUser }
   ) {
@@ -34,7 +35,7 @@ export class TrackingController {
 
   @UseGuards(JwtAuthGuard)
   @Get(":id/tracking")
-  findByShipment(@Param("id") id: string, @Request() req: { user: AuthUser }) {
+  findByShipment(@Param("id", ParseUUIDPipe) id: string, @Request() req: { user: AuthUser }) {
     return this.trackingService.findByShipment(id, req.user);
   }
 }
