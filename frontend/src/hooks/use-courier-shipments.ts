@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { redirectToLoginIfUnauthorized } from "../lib/route-guards";
 import {
@@ -163,28 +163,41 @@ export default function useCourierShipments() {
       });
   }, [router]);
 
-  const readyNowCount = shipments.filter((s) =>
-    ["ASSIGNED", "PICKED_UP"].includes(s.status)
-  ).length;
-  const inTransitCount = shipments.filter(
-    (s) => s.status === "IN_TRANSIT"
-  ).length;
-  const completedCount = shipments.filter((s) =>
-    ["DELIVERED", "CANCELLED"].includes(s.status)
-  ).length;
+  const readyNowCount = useMemo(
+    () =>
+      shipments.filter((s) =>
+        ["ASSIGNED", "PICKED_UP"].includes(s.status)
+      ).length,
+    [shipments]
+  );
+  const inTransitCount = useMemo(
+    () => shipments.filter((s) => s.status === "IN_TRANSIT").length,
+    [shipments]
+  );
+  const completedCount = useMemo(
+    () =>
+      shipments.filter((s) =>
+        ["DELIVERED", "CANCELLED"].includes(s.status)
+      ).length,
+    [shipments]
+  );
 
-  const visibleShipments = shipments.filter((shipment) => {
-    if (selectedSegment === "READY_NOW") {
-      return ["ASSIGNED", "PICKED_UP"].includes(shipment.status);
-    }
-    if (selectedSegment === "IN_TRANSIT") {
-      return shipment.status === "IN_TRANSIT";
-    }
-    if (selectedSegment === "COMPLETED") {
-      return ["DELIVERED", "CANCELLED"].includes(shipment.status);
-    }
-    return true;
-  });
+  const visibleShipments = useMemo(
+    () =>
+      shipments.filter((shipment) => {
+        if (selectedSegment === "READY_NOW") {
+          return ["ASSIGNED", "PICKED_UP"].includes(shipment.status);
+        }
+        if (selectedSegment === "IN_TRANSIT") {
+          return shipment.status === "IN_TRANSIT";
+        }
+        if (selectedSegment === "COMPLETED") {
+          return ["DELIVERED", "CANCELLED"].includes(shipment.status);
+        }
+        return true;
+      }),
+    [shipments, selectedSegment]
+  );
 
   return {
     shipments,
