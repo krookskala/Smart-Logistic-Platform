@@ -411,14 +411,12 @@ describe("ShipmentsService", () => {
     const created = new Date("2026-03-22T00:00:00Z");
     const prisma = {
       shipment: {
-        findMany: jest.fn().mockResolvedValue([
-          { createdAt: created, updatedAt: now }
-        ]),
+        findMany: jest
+          .fn()
+          .mockResolvedValue([{ createdAt: created, updatedAt: now }]),
         groupBy: jest
           .fn()
-          .mockResolvedValueOnce([
-            { createdAt: now, _count: 1 }
-          ])
+          .mockResolvedValueOnce([{ createdAt: now, _count: 1 }])
           .mockResolvedValueOnce([
             { deliveryAddress: "123 Main St", _count: 3 }
           ])
@@ -528,11 +526,7 @@ describe("ShipmentsService", () => {
       accessControlService
     );
 
-    const result = await service.delay(
-      "s1",
-      { note: "Traffic jam" },
-      "admin1"
-    );
+    const result = await service.delay("s1", { note: "Traffic jam" }, "admin1");
 
     expect(prisma.shipment.update).toHaveBeenCalledWith({
       where: { id: "s1" },
