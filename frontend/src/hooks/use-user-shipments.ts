@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { redirectToLoginIfUnauthorized } from "../lib/route-guards";
 import {
@@ -175,43 +175,50 @@ export default function useUserShipments() {
       .finally(() => setLoading(false));
   }, [router]);
 
-  const segmentCounts = {
-    ALL: shipments.length,
-    ACTIVE: shipments.filter((s) =>
-      ["CREATED", "ASSIGNED", "PICKED_UP", "IN_TRANSIT"].includes(s.status)
-    ).length,
-    COMPLETED: shipments.filter((s) => s.status === "DELIVERED").length,
-    CANCELLED: shipments.filter((s) => s.status === "CANCELLED").length
-  };
+  const segmentCounts = useMemo(
+    () => ({
+      ALL: shipments.length,
+      ACTIVE: shipments.filter((s) =>
+        ["CREATED", "ASSIGNED", "PICKED_UP", "IN_TRANSIT"].includes(s.status)
+      ).length,
+      COMPLETED: shipments.filter((s) => s.status === "DELIVERED").length,
+      CANCELLED: shipments.filter((s) => s.status === "CANCELLED").length
+    }),
+    [shipments]
+  );
 
-  const visibleShipments = shipments.filter((shipment) => {
-    const normalizedQuery = searchQuery.trim().toLowerCase();
-    const matchesSegment =
-      selectedSegment === "ALL"
-        ? true
-        : selectedSegment === "ACTIVE"
-          ? ["CREATED", "ASSIGNED", "PICKED_UP", "IN_TRANSIT"].includes(
-              shipment.status
-            )
-          : selectedSegment === "COMPLETED"
-            ? shipment.status === "DELIVERED"
-            : shipment.status === "CANCELLED";
+  const visibleShipments = useMemo(
+    () =>
+      shipments.filter((shipment) => {
+        const normalizedQuery = searchQuery.trim().toLowerCase();
+        const matchesSegment =
+          selectedSegment === "ALL"
+            ? true
+            : selectedSegment === "ACTIVE"
+              ? ["CREATED", "ASSIGNED", "PICKED_UP", "IN_TRANSIT"].includes(
+                  shipment.status
+                )
+              : selectedSegment === "COMPLETED"
+                ? shipment.status === "DELIVERED"
+                : shipment.status === "CANCELLED";
 
-    const matchesSearch =
-      normalizedQuery.length === 0
-        ? true
-        : [
-            shipment.title,
-            shipment.pickupAddress,
-            shipment.deliveryAddress,
-            shipment.description ?? ""
-          ]
-            .join(" ")
-            .toLowerCase()
-            .includes(normalizedQuery);
+        const matchesSearch =
+          normalizedQuery.length === 0
+            ? true
+            : [
+                shipment.title,
+                shipment.pickupAddress,
+                shipment.deliveryAddress,
+                shipment.description ?? ""
+              ]
+                .join(" ")
+                .toLowerCase()
+                .includes(normalizedQuery);
 
-    return matchesSegment && matchesSearch;
-  });
+        return matchesSegment && matchesSearch;
+      }),
+    [shipments, selectedSegment, searchQuery]
+  );
 
   const selectedSegmentLabel =
     selectedSegment === "ALL"
