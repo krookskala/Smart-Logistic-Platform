@@ -165,9 +165,8 @@ export default function useCourierShipments() {
 
   const readyNowCount = useMemo(
     () =>
-      shipments.filter((s) =>
-        ["ASSIGNED", "PICKED_UP"].includes(s.status)
-      ).length,
+      shipments.filter((s) => ["ASSIGNED", "PICKED_UP"].includes(s.status))
+        .length,
     [shipments]
   );
   const inTransitCount = useMemo(
@@ -176,9 +175,8 @@ export default function useCourierShipments() {
   );
   const completedCount = useMemo(
     () =>
-      shipments.filter((s) =>
-        ["DELIVERED", "CANCELLED"].includes(s.status)
-      ).length,
+      shipments.filter((s) => ["DELIVERED", "CANCELLED"].includes(s.status))
+        .length,
     [shipments]
   );
 
