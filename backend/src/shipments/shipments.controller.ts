@@ -5,6 +5,7 @@ import {
   Get,
   Query,
   Param,
+  ParseUUIDPipe,
   Post,
   Patch,
   UseGuards,
@@ -68,7 +69,7 @@ export class ShipmentsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("USER", "ADMIN", "COURIER")
   @Get(":id")
-  findOne(@Param("id") id: string, @Request() req: { user: AuthUser }) {
+  findOne(@Param("id", ParseUUIDPipe) id: string, @Request() req: { user: AuthUser }) {
     return this.shipmentsService.findOne(id, req.user);
   }
 
@@ -76,7 +77,7 @@ export class ShipmentsController {
   @Roles("USER", "ADMIN")
   @Patch(":id")
   update(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateShipmentDto,
     @Request() req: { user: AuthUser }
   ) {
@@ -87,7 +88,7 @@ export class ShipmentsController {
   @Roles("ADMIN")
   @Post(":id/assign-courier")
   assignCourier(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: AssignCourierDto,
     @Request() req: { user: AuthUser }
   ) {
@@ -101,14 +102,14 @@ export class ShipmentsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("USER", "ADMIN")
   @Post(":id/cancel")
-  cancel(@Param("id") id: string, @Request() req: { user: AuthUser }) {
+  cancel(@Param("id", ParseUUIDPipe) id: string, @Request() req: { user: AuthUser }) {
     return this.shipmentsService.cancel(id, req.user);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("ADMIN")
   @Delete(":id")
-  remove(@Param("id") id: string, @Request() req: { user: AuthUser }) {
+  remove(@Param("id", ParseUUIDPipe) id: string, @Request() req: { user: AuthUser }) {
     return this.shipmentsService.remove(id, req.user.userId);
   }
 
@@ -116,7 +117,7 @@ export class ShipmentsController {
   @Roles("ADMIN")
   @Post(":id/delay")
   delay(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: DelayShipmentDto,
     @Request() req: { user: AuthUser }
   ) {
