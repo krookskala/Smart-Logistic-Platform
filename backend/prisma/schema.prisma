@@ -109,4 +109,6 @@ model AuditLog {
     actor        User?     @relation("UserAuditLogs", fields: [actorUserId], references: [id])
 
     @@index([createdAt])
+    @@index([actionType])
+    @@index([actorUserId])
 }
