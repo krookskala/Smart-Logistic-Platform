@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { redirectToLoginIfUnauthorized } from "../lib/route-guards";
 import {
@@ -250,24 +250,34 @@ export default function useAdminDashboard() {
     }
   }
 
-  const activeShipments = shipments.filter((s) =>
-    ["CREATED", "ASSIGNED", "PICKED_UP", "IN_TRANSIT", "DELAYED"].includes(
-      s.status
-    )
+  const activeShipments = useMemo(
+    () =>
+      shipments.filter((s) =>
+        ["CREATED", "ASSIGNED", "PICKED_UP", "IN_TRANSIT", "DELAYED"].includes(
+          s.status
+        )
+      ),
+    [shipments]
   );
-  const pendingAssignments = shipments.filter(
-    (s) => s.status === "CREATED" && !s.assignedCourierId
+  const pendingAssignments = useMemo(
+    () =>
+      shipments.filter(
+        (s) => s.status === "CREATED" && !s.assignedCourierId
+      ),
+    [shipments]
   );
-  const delayedOrTransit = shipments.filter((s) =>
-    ["IN_TRANSIT", "DELAYED"].includes(s.status)
-  );
-  const overviewPreview = pendingAssignments
-    .concat(
-      delayedOrTransit.filter(
-        (s) => !pendingAssignments.some((p) => p.id === s.id)
+  const overviewPreview = useMemo(() => {
+    const delayedOrTransit = shipments.filter((s) =>
+      ["IN_TRANSIT", "DELAYED"].includes(s.status)
+    );
+    return pendingAssignments
+      .concat(
+        delayedOrTransit.filter(
+          (s) => !pendingAssignments.some((p) => p.id === s.id)
+        )
       )
-    )
-    .slice(0, 4);
+      .slice(0, 4);
+  }, [shipments, pendingAssignments]);
 
   return {
     metrics,
