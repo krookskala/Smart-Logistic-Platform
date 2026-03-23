@@ -163,10 +163,7 @@ export class AuthService {
       });
   }
 
-  async changePassword(
-    userId: string,
-    dto: ChangePasswordDto
-  ) {
+  async changePassword(userId: string, dto: ChangePasswordDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId }
     });
@@ -180,7 +177,10 @@ export class AuthService {
       throw new UnauthorizedException("Current password is incorrect");
     }
 
-    const hashedPassword = await bcrypt.hash(dto.newPassword, BCRYPT_SALT_ROUNDS);
+    const hashedPassword = await bcrypt.hash(
+      dto.newPassword,
+      BCRYPT_SALT_ROUNDS
+    );
     await this.prisma.user.update({
       where: { id: userId },
       data: { password: hashedPassword }
