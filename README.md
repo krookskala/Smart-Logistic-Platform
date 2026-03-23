@@ -1,139 +1,257 @@
 # Smart Logistics Platform
 
-A full-stack logistics application for managing shipments, courier assignment, and real-time delivery tracking.
+The Smart Logistics Platform is a modern, production grade web application that reimagines how logistics operations are managed from end to end. Designed around a role based architecture, it delivers three distinct experiences an **Admin Panel** for operational oversight and courier dispatch, a **User Dashboard** for shipment creation and package tracking, and a **Courier Workspace** for managing assigned deliveries in the field. Every status change is broadcast instantly through real time WebSocket channels, giving all stakeholders immediate visibility into the delivery pipeline. Built with Next.js, NestJS, PostgreSQL and Socket.IO, the platform combines enterprise level security practices JWT authentication with token rotation, ownership enforced access control and comprehensive audit logging with a clean, responsive interface that works seamlessly across devices.
 
-This project demonstrates a role-based product architecture with separate experiences for administrators, end users, and couriers. It combines a Next.js frontend with a NestJS backend, PostgreSQL via Prisma, JWT authentication, RBAC, ownership checks, and Socket.IO-based live shipment updates.
+![CI](https://github.com/krookskala/Smart-Logistic-Platform/actions/workflows/ci.yml/badge.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Node](https://img.shields.io/badge/node-20+-green.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)
 
-## Highlights
+---
 
-- Role-based authentication and dashboard routing
-- Separate dashboards for `ADMIN`, `USER`, and `COURIER`
-- Admin user role management
-- Courier assignment workflow
-- Shipment creation and user-specific shipment visibility
-- Courier-specific delivery update flow
-- Per-shipment real-time tracking rooms with Socket.IO
-- Audit logging for role changes, assignments, and tracking updates
-- Request logging and health/readiness endpoint
-- Backend RBAC and ownership enforcement
-- Shared formatting, linting, and type-checking workflow
-- CI pipeline with formatting, linting, type checking, backend tests, and build validation
+![Image](https://github.com/user-attachments/assets/588ad818-0b28-4907-96e5-30ad72eb0540)
+
+![Image](https://github.com/user-attachments/assets/bfadab6a-67f0-49ec-9465-fac084e4eb54)
+
+![Image](https://github.com/user-attachments/assets/0185431e-5e0b-4a58-9d15-d3a06c741afd)
+
+![Image](https://github.com/user-attachments/assets/85a00282-ff35-4d13-8100-0e3742e5dec9)
+
+![Image](https://github.com/user-attachments/assets/16db5167-8e9c-444c-a7ee-ccf68e619e7a)
+
+![Image](https://github.com/user-attachments/assets/e44c008e-be3c-491f-81b4-bc59857b7a3a)
+
+
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Getting Started](#getting-started)
+- [API Reference](#api-reference)
+- [Security & Access Control](#security--access-control)
+- [Real Time Tracking](#real-time-tracking)
+- [Testing & Quality](#testing--quality)
+- [Demo Flow](#demo-flow)
+- [Contributing](#contributing)
+- [Links](#links)
+- [License](#license)
+
+---
+
+## Features
+
+**Role Based Dashboards**
+
+- Three distinct dashboards tailored for Admin, User, and Courier roles
+- Automatic role detection and dashboard routing after login
+- Profile management with password and email change functionality
+
+**Admin Panel**
+
+- Shipment metrics overview with status distribution
+- Courier assignment workflow with availability tracking
+- User role management  promote users to couriers on the fly
+- Comprehensive audit log viewer with filtering by action, target, and actor
+- Shipment filtering and sorting controls
+
+**User Experience**
+
+- Create and manage shipments with pickup/delivery addresses
+- View only owned shipments enforced at both API and UI level
+- Search, filter, and segment shipments by status (Active, Completed, Cancelled)
+- Real-time shipment tracking page with live status updates
+
+**Courier Workspace**
+
+- View only assigned deliveries with segmented filters (Ready Now, In Transit, Completed)
+- Update tracking status with notes and optional GPS coordinates
+- Toggle availability status for dispatch readiness
+- Delivery note requirement for completed shipments
+
+**Security**
+
+- JWT authentication with refresh token rotation and SHA-256 hashing
+- Role based access control (RBAC) with ownership enforcement
+- Rate limiting (per-endpoint throttling for auth routes)
+- Helmet.js security headers and CORS configuration
+- Global exception filter no stack traces or internal errors leak to clients
+- Input validation with `class-validator` and `forbidNonWhitelisted` rejection
+- UUID validation on all route parameters
+
+**Real-Time Tracking**
+
+- Socket.IO WebSocket gateway with JWT-authenticated connections
+- Per shipment rooms (`shipment:<id>`) for targeted event broadcasting
+- Live tracking event streaming on shipment detail pages
+- Automatic room join/leave lifecycle management
+
+**Infrastructure**
+
+- Multi stage Docker builds for optimized production images
+- Docker Compose orchestration (production + dev configurations)
+- GitHub Actions CI pipeline (format, lint, typecheck, test, build)
+- Health check and readiness endpoints for container orchestrators
+- Graceful shutdown hooks for clean database disconnection
+
+---
 
 ## Tech Stack
 
-### Frontend
-
-- Next.js 14
-- React 18
-- TypeScript
-- Tailwind CSS
-- Socket.IO Client
-
 ### Backend
 
-- NestJS
-- Prisma ORM
-- PostgreSQL
-- JWT Authentication
-- Socket.IO
-- Class Validator
-
-### Tooling
-
-- ESLint
-- Prettier
-- TypeScript type checking
-- GitHub Actions CI
-- Docker / Docker Compose
-
-## Role-Based Product Flows
-
-### Admin
-
-- View shipment metrics
-- View shipment status distribution
-- Assign couriers to shipments
-- Manage user roles
-- Promote users to couriers through role updates
-
-### User
-
-- Register and log in
-- Create shipments
-- View only their own shipments
-- Open shipment tracking details
-
-### Courier
-
-- View only assigned deliveries
-- Update tracking status
-- Add delivery notes and optional coordinates
-- See live shipment updates reflected in tracking pages
-
-## Architecture Notes
-
-This project is structured around domain responsibilities instead of keeping large JSX pages or monolithic service files.
+| Technology | Purpose |
+|---|---|
+| **NestJS 10** | Backend framework with modular architecture |
+| **Prisma 5** | Type safe ORM with migrations and seeding |
+| **PostgreSQL 16** | Primary relational database |
+| **Passport JWT** | Stateless authentication with access + refresh tokens |
+| **Socket.IO** | Real time bidirectional event-based communication |
+| **class-validator** | DTO validation with decorators |
+| **@nestjs/throttler** | Rate limiting and brute-force protection |
+| **@nestjs/cache-manager** | Response caching for metrics and analytics |
+| **Helmet** | HTTP security headers |
+| **Swagger** | Auto generated API documentation (dev only) |
+| **Jest** | Unit and integration testing (71+ tests) |
 
 ### Frontend
 
-- `src/app/admin` orchestrates admin state and composes admin components
-- `src/app/user` orchestrates user shipment management
-- `src/app/courier` orchestrates assigned-delivery workflows
-- `src/components/admin`, `src/components/user`, `src/components/courier`, and `src/components/tracking` group UI by domain
-- shared UI and shared types are centralized when reuse makes sense
+| Technology | Purpose |
+|---|---|
+| **Next.js 14** | React framework with App Router |
+| **React 18** | Component based UI library |
+| **TypeScript** | End to end type safety |
+| **Tailwind CSS** | Utility first responsive styling |
+| **Socket.IO Client** | Real time WebSocket integration |
+| **Jest + RTL** | Component and hook testing (27+ tests) |
 
-### Backend
+### Infrastructure
 
-- auth logic is handled through JWT and role guards
-- shipment access rules are centralized via `AccessControlService`
-- tracking creation is restricted for assigned couriers and admins
-- user role changes can automatically provision courier records when needed
+| Technology | Purpose |
+|---|---|
+| **Docker** | Multi stage containerization (Node 20 Alpine) |
+| **Docker Compose** | Multi service orchestration |
+| **GitHub Actions** | Automated CI pipeline |
+| **ESLint + Prettier** | Code quality and formatting enforcement |
 
-## Security and Access Control
+---
 
-The backend enforces role-aware and ownership-aware access rules.
+## Architecture
 
-Examples:
-
-- `ADMIN` can access all shipments and manage roles
-- `USER` can only access shipments they created
-- `COURIER` can only access shipments assigned to their courier record
-- tracking events can only be created by admins or the assigned courier
-
-This means the UI is role-specific, but the real security boundary is enforced in the backend.
-
-## Real-Time Tracking
-
-Shipment tracking updates are emitted through Socket.IO and displayed on the shipment tracking page.
-
-The tracking detail page:
-
-- fetches the shipment’s historical tracking events on load
-- connects with the current JWT
-- joins a `shipment:<id>` room via `joinShipmentRoom`
-- listens for live updates emitted only to that room
-
-This ensures each tracking page only shows events for the correct shipment.
-
-## Project Structure
+### Project Structure
 
 ```text
-Tracking App/
+Smart-Logistic-Platform/
 ├── backend/
+│   ├── prisma/                  # Schema, migrations, seed script
+│   └── src/
+│       ├── auth/                # JWT, guards, login/register, password/email change
+│       ├── shipments/           # CRUD, metrics, analytics, assignment
+│       ├── tracking/            # Events, Socket.IO gateway
+│       ├── couriers/            # Profiles, availability, performance
+│       ├── users/               # Role management
+│       ├── audit/               # Action logging and query
+│       ├── health/              # Liveness and readiness checks
+│       ├── common/              # Filters, guards, interceptors, pipes
+│       └── prisma/              # Database service
 ├── frontend/
-├── docker/
-├── .github/workflows/
-├── docker-compose.yml
-└── .env.example
+│   └── src/
+│       ├── app/                 # Next.js pages (admin, user, courier, profile, tracking)
+│       ├── components/          # UI components organized by domain
+│       ├── hooks/               # Custom hooks for state management
+│       ├── lib/                 # API client, auth helpers, types
+│       └── types/               # Shared TypeScript definitions
+├── docker/                      # Dockerfiles (backend + frontend)
+├── .github/workflows/           # CI pipeline configuration
+├── docker-compose.yml           # Production stack
+├── docker-compose.dev.yml       # Development database
+└── .env.example                 # Environment variable template
 ```
 
-## Environment Variables
+### Real Time Tracking Flow
 
-Example values are provided in [.env.example](/C:/Users/Krookskala/Desktop/Tracking%20App/.env.example).
+```
+  Courier updates status          Backend processes event
+  via REST API            ──►     and saves to database
+                                          │
+                                          ▼
+                                  Socket.IO emits to
+                                  room: shipment:<id>
+                                          │
+                                          ▼
+                                  Tracking page receives
+                                  live update instantly
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- **Node.js** 20 or higher
+- **Docker** and **Docker Compose** (for PostgreSQL)
+- **npm** (included with Node.js)
+
+### Quick Start (Recommended)
+
+A single command starts PostgreSQL, the backend, and the frontend:
+
+```bash
+npm run dev
+```
+
+This launches:
+- **PostgreSQL** on port `5432` (via Docker)
+- **Backend** on port `3001` (NestJS with hot-reload)
+- **Frontend** on port `3000` (Next.js dev server)
+
+Press `Ctrl+C` to stop. Then clean up:
+
+```bash
+npm run dev:stop
+```
+
+### Docker Compose (Full Stack)
+
+Run everything in containers (no hot-reload):
+
+```bash
+docker compose up --build
+```
+
+### Manual Setup
+
+1. **Start PostgreSQL**
+   ```bash
+   docker compose -f docker-compose.dev.yml up -d
+   ```
+
+2. **Backend**
+   ```bash
+   cd backend
+   npm install
+   npm run prisma:migrate
+   npm run prisma:seed       # optional: load demo data
+   npm run start:dev
+   ```
+
+3. **Frontend**
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+### Environment Variables
+
+Copy `.env.example` to `.env` and configure:
 
 ```env
 DATABASE_URL=postgres://logistics:logistics@localhost:5432/logistics
-JWT_SECRET=change-me
+JWT_SECRET=
 ALLOWED_ORIGINS=http://localhost:3000
 JWT_ISSUER=
 JWT_AUDIENCE=
@@ -141,122 +259,210 @@ PORT=3001
 NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
 ```
 
-## Running the Project Locally
+---
 
-### Quick Start (Recommended)
+## API Reference
 
-A single command starts PostgreSQL (Docker), the backend (watch mode), and the frontend (dev server):
+### Authentication
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/auth/register` | Register new user | Public |
+| POST | `/auth/login` | Login with credentials | Public |
+| POST | `/auth/refresh` | Refresh access token | Token |
+| POST | `/auth/logout` | Revoke refresh token | JWT |
+| GET | `/auth/me` | Get current user profile | JWT |
+| PATCH | `/auth/change-password` | Change password | JWT |
+| PATCH | `/auth/change-email` | Change email address | JWT |
+
+### Shipments
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/shipments` | Create shipment | USER, ADMIN |
+| GET | `/shipments` | List shipments (role filtered) | JWT |
+| GET | `/shipments/metrics` | Shipment metrics | ADMIN |
+| GET | `/shipments/analytics` | Analytics data | ADMIN |
+| GET | `/shipments/:id` | Shipment details | JWT |
+| PATCH | `/shipments/:id` | Update shipment | USER, ADMIN |
+| POST | `/shipments/:id/assign-courier` | Assign courier | ADMIN |
+| POST | `/shipments/:id/cancel` | Cancel shipment | USER, ADMIN |
+| POST | `/shipments/:id/delay` | Mark as delayed | ADMIN |
+| DELETE | `/shipments/:id` | Delete shipment | ADMIN |
+
+### Tracking
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/shipments/:id/tracking` | Create tracking event | COURIER, ADMIN |
+| GET | `/shipments/:id/tracking` | Get tracking history | JWT |
+
+### Couriers
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/couriers` | Create courier profile | ADMIN |
+| GET | `/couriers` | List all couriers | ADMIN |
+| GET | `/couriers/me` | Get own courier profile | COURIER |
+| PATCH | `/couriers/me/availability` | Toggle availability | COURIER |
+| PATCH | `/couriers/me/profile` | Update profile | COURIER |
+| GET | `/couriers/performance` | Performance metrics | ADMIN |
+
+### Users & Audit
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | `/users` | List all users | ADMIN |
+| PATCH | `/users/:id/role` | Update user role | ADMIN |
+| GET | `/audit-logs` | Query audit logs | ADMIN |
+
+### Health
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | `/health` | Liveness check | Public |
+| GET | `/health/readiness` | Database readiness | Public |
+
+> Swagger documentation is available at `/api` in development mode.
+
+---
+
+## Security & Access Control
+
+The backend enforces role aware and ownership aware access at every layer:
+
+- **ADMIN:** Full access to all shipments, users, couriers, and audit logs
+- **USER:** Can only access shipments they created
+- **COURIER:** Can only access shipments assigned to their courier record
+- **Tracking events:** Restricted to the assigned courier or admins
+
+The UI is role specific, but the **real security boundary is enforced in the backend**. Even if the frontend were bypassed, unauthorized API calls would be rejected.
+
+Additional protections:
+- Rate limiting on authentication endpoints (5 requests/minute)
+- Global rate limiting (60 requests/minute)
+- Request payload validation with unknown field rejection
+- UUID format validation on all route parameters
+- Bcrypt password hashing with configurable salt rounds
+- Refresh token rotation with SHA-256 hashing
+
+---
+
+## Real Time Tracking
+
+Shipment tracking uses Socket.IO for instant status updates:
+
+1. **Connection:** Client connects with JWT token for authentication
+2. **Room join:** Client joins `shipment:<id>` room (authorized access only)
+3. **Event broadcast:** When a courier updates tracking, the event is emitted to the room
+4. **Live update:** All clients viewing that shipment receive the update instantly
+
+This architecture ensures each tracking page only receives events for the relevant shipment, with no unnecessary data transfer.
+
+---
+
+## Testing & Quality
+
+### Running Tests
 
 ```bash
-npm run dev
-```
-
-This starts:
-
-- PostgreSQL on `5432` (via Docker)
-- Backend on `3001` (NestJS watch mode with hot-reload)
-- Frontend on `3000` (Next.js dev server with hot-reload)
-
-All three processes run in parallel with color-coded output. Press `Ctrl+C` to stop everything.
-
-To stop and remove the database container afterwards:
-
-```bash
-npm run dev:stop
-```
-
-### Option 2: Run with Full Docker Compose
-
-If you prefer running everything inside Docker (no hot-reload):
-
-```bash
-docker compose up --build
-```
-
-### Option 3: Run Services Individually
-
-Start PostgreSQL first, then:
-
-#### Backend
-
-```bash
-cd backend
-npm install
-npm run start:dev
-```
-
-#### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-## Quality Checks
-
-From the project root:
-
-```bash
-npm run format
-npm run format:check
-npm run lint
-npm run typecheck
+# Run all tests (from project root)
 npm run test
+
+# Backend only (71+ tests)
+cd backend && npm run test
+
+# Frontend only (27+ tests)
+cd frontend && npm run test
 ```
 
-These commands run the checks for both frontend and backend.
+### Quality Checks
 
-## CI
+```bash
+npm run format:check    # Prettier formatting
+npm run lint            # ESLint rules
+npm run typecheck       # TypeScript compilation
+```
 
-The GitHub Actions workflow runs:
+### CI Pipeline
 
-- format check
-- lint
-- typecheck
-- tests
-- build
+The GitHub Actions workflow automatically runs on every push and pull request:
 
-for both frontend and backend.
+| Step | Backend | Frontend |
+|------|---------|----------|
+| Format Check | Prettier | Prettier |
+| Lint | ESLint | ESLint |
+| Type Check | `tsc --noEmit` | `tsc --noEmit` |
+| Test | Jest (71+ tests) | Jest (27+ tests) |
+| Build | NestJS build | Next.js build |
 
-## Suggested Demo Flow
+---
 
-If you want to showcase this project in an interview or portfolio review, this is a strong end-to-end demo flow:
+## Demo Flow
 
-1. Start the stack (recommended with Docker Compose).
-2. Seed demo data:
-   - `cd backend`
-   - `npm run prisma:seed`
-3. Log in as `admin@example.com` (password: `Admin12345!`)
-4. Promote `user1@example.com` to `COURIER` (role management panel).
-5. Assign that courier to `Demo Shipment 2`.
-6. Log in as `courier@example.com` (password: `Courier12345!`) and update tracking.
-7. Open a shipment tracking page and show live updates pushed only to that shipment room.
-8. Log in as `user2@example.com` (password: `User12345!`) and verify they only see their own shipments.
+A suggested walkthrough for showcasing the platform:
 
-## What This Project Demonstrates
+1. **Start the stack**
+   ```bash
+   docker compose up --build
+   ```
 
-- Full-stack TypeScript development
-- API and UI design for role-based systems
-- Backend authorization and ownership enforcement
-- Admin operations tooling
-- Real-time event-driven UI updates
-- Frontend component decomposition and maintainable structure
-- Practical engineering workflow with formatting, linting, type checking, and CI
+2. **Seed demo data**
+   ```bash
+   cd backend && npm run prisma:seed
+   ```
 
-## Future Improvements
+3. **Admin:** Log in as `admin@example.com` / `Admin12345!`
+   - View metrics dashboard and shipment overview
+   - Promote `user1@example.com` to `COURIER` via role management
+   - Assign the new courier to `Demo Shipment 2`
 
-- Better auth error messaging from backend responses
-- Full integration/e2e tests (beyond unit tests)
-- Richer courier availability and dispatch logic
+4. **Courier:** Log in as `courier@example.com` / `Courier12345!`
+   - View assigned deliveries
+   - Update tracking status with a delivery note
 
-## Author Notes
+5. **Real Time:** Open a shipment tracking page
+   - Watch live updates appear as the courier posts tracking events
 
-This project was built to reflect how a real internal logistics platform could evolve from a simple shipment tracker into a role-aware operational product.
+6. **User:** Log in as `user2@example.com` / `User12345!`
+   - Verify they can only see their own shipments
+   - Create a new shipment and track it
 
-The focus was not only on features, but also on:
+---
 
-- clean separation of concerns
-- maintainable frontend component structure
-- meaningful backend access control
-- realistic product flows between different roles
+## Contributing
+
+Contributions are welcome! If you find issues or have ideas for improvements, feel free to open an issue or submit a pull request.
+
+1. **Fork the repository**
+2. **Create your feature branch**
+   ```bash
+   git checkout -b feature/YourFeature
+   ```
+3. **Commit your changes**
+   ```bash
+   git commit -m "Add YourFeature"
+   ```
+4. **Push to the branch**
+   ```bash
+   git push origin feature/YourFeature
+   ```
+5. **Open a pull request**
+
+Please ensure your code passes all quality checks (`npm run format:check && npm run lint && npm run typecheck && npm run test`) before submitting.
+
+---
+
+## Links
+
+[![Gmail](https://img.shields.io/badge/ismailsariarslan7@gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:ismailsariarslan7@gmail.com)
+
+[![Instagram](https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/ismailsariarslan/)
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/ismailsariarslan/)
+
+---
+
+## License
+
+This project is licensed under the [MIT License](https://choosealicense.com/licenses/mit/).
