@@ -4,6 +4,7 @@ import {
   UseGuards,
   Body,
   Param,
+  ParseUUIDPipe,
   Patch,
   Request
 } from "@nestjs/common";
@@ -32,7 +33,7 @@ export class UsersController {
   @Roles("ADMIN")
   @Patch(":id/role")
   updateRole(
-    @Param("id") id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateUserRoleDto,
     @Request() req: { user: AuthUser }
   ) {
