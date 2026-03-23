@@ -1,4 +1,11 @@
-import { IsEnum, IsOptional, IsNumber, IsString, Min, Max } from "class-validator";
+import {
+  IsEnum,
+  IsOptional,
+  IsNumber,
+  IsString,
+  Min,
+  Max
+} from "class-validator";
 import { ShipmentStatus } from "@prisma/client";
 
 export class CreateTrackingDto {
