@@ -14,6 +14,7 @@ import { JwtService } from "@nestjs/jwt";
 import { createHash, randomBytes } from "crypto";
 
 const REFRESH_TOKEN_EXPIRY_DAYS = 7;
+const BCRYPT_SALT_ROUNDS = 10;
 
 function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
@@ -41,7 +42,15 @@ export class AuthService {
   }
 
   async register(dto: RegisterDto) {
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const existing = await this.prisma.user.findUnique({
+      where: { email: dto.email }
+    });
+
+    if (existing) {
+      throw new ConflictException("Email already registered");
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.password, BCRYPT_SALT_ROUNDS);
 
     const user = await this.prisma.user.create({
       data: {
@@ -171,7 +180,7 @@ export class AuthService {
       throw new UnauthorizedException("Current password is incorrect");
     }
 
-    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+    const hashedPassword = await bcrypt.hash(dto.newPassword, BCRYPT_SALT_ROUNDS);
     await this.prisma.user.update({
       where: { id: userId },
       data: { password: hashedPassword }
