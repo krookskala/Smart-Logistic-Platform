@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Patch, Post, Request, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Request,
+  UseGuards
+} from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 import { AuthService } from "./auth.service";
@@ -57,10 +65,7 @@ export class AuthController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Patch("change-email")
-  changeEmail(
-    @Body() dto: ChangeEmailDto,
-    @Request() req: { user: AuthUser }
-  ) {
+  changeEmail(@Body() dto: ChangeEmailDto, @Request() req: { user: AuthUser }) {
     return this.authService.changeEmail(req.user.userId, dto);
   }
 }
