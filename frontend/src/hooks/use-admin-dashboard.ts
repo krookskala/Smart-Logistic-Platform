@@ -261,9 +261,7 @@ export default function useAdminDashboard() {
   );
   const pendingAssignments = useMemo(
     () =>
-      shipments.filter(
-        (s) => s.status === "CREATED" && !s.assignedCourierId
-      ),
+      shipments.filter((s) => s.status === "CREATED" && !s.assignedCourierId),
     [shipments]
   );
   const overviewPreview = useMemo(() => {
