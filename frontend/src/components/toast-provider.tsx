@@ -43,7 +43,13 @@ function ToastViewport({ toast }: { toast: ToastState }) {
           className={`toast-icon ${isSuccess ? "toast-icon-success" : "toast-icon-error"}`}
         >
           {isSuccess ? (
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              aria-hidden="true"
+            >
               <path
                 d="M3.5 8.5L6.5 11.5L12.5 4.5"
                 stroke="currentColor"
@@ -53,7 +59,13 @@ function ToastViewport({ toast }: { toast: ToastState }) {
               />
             </svg>
           ) : (
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              aria-hidden="true"
+            >
               <path
                 d="M4.5 4.5L11.5 11.5M11.5 4.5L4.5 11.5"
                 stroke="currentColor"
