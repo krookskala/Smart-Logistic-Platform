@@ -120,7 +120,10 @@ export default function useProfile() {
         errors.newEmail = "New email is required.";
       } else if (!EMAIL_REGEX.test(newEmail)) {
         errors.newEmail = "Please enter a valid email address.";
-      } else if (profile && newEmail.toLowerCase() === profile.email.toLowerCase()) {
+      } else if (
+        profile &&
+        newEmail.toLowerCase() === profile.email.toLowerCase()
+      ) {
         errors.newEmail = "New email must be different from current email.";
       }
     }
@@ -219,7 +222,9 @@ export default function useProfile() {
       setConfirmPassword("");
       setPasswordTouched({});
       setPasswordErrors({});
-      logoutAfterDelay("Password changed successfully. Redirecting to login...");
+      logoutAfterDelay(
+        "Password changed successfully. Redirecting to login..."
+      );
     } catch (err) {
       showToast({
         type: "error",
