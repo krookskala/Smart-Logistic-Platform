@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateCourierDto } from "./dto/create-courier.dto";
 import { UpdateMyAvailabilityDto } from "./dto/update-my-availability.dto";
@@ -63,7 +63,7 @@ export class CouriersService {
   }
 
   async findMe(userId: string) {
-    return this.prisma.courier.findUnique({
+    const courier = await this.prisma.courier.findUnique({
       where: { userId },
       include: {
         _count: {
@@ -81,6 +81,12 @@ export class CouriersService {
         }
       }
     });
+
+    if (!courier) {
+      throw new NotFoundException("Courier profile not found");
+    }
+
+    return courier;
   }
 
   async updateMyProfile(userId: string, dto: UpdateCourierProfileDto) {
