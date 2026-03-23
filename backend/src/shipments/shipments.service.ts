@@ -354,7 +354,8 @@ export class ShipmentsService {
         ? deliveryTimes.reduce((a, b) => a + b, 0) / deliveryTimes.length
         : 0;
 
-    const avgDeliveryTimeHours = Math.round(avgDeliveryTimeMs / 3600000 * 10) / 10;
+    const avgDeliveryTimeHours =
+      Math.round((avgDeliveryTimeMs / 3600000) * 10) / 10;
 
     const shipmentsByDay = await this.prisma.shipment.groupBy({
       by: ["createdAt"],
@@ -390,9 +391,7 @@ export class ShipmentsService {
     const shipment = await this.getShipmentOrThrow(id);
 
     if (shipment.status !== "CANCELLED") {
-      throw new BadRequestException(
-        "Only CANCELLED shipments can be deleted."
-      );
+      throw new BadRequestException("Only CANCELLED shipments can be deleted.");
     }
 
     await this.prisma.trackingEvent.deleteMany({
