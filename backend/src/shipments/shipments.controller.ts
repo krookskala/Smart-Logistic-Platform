@@ -69,7 +69,10 @@ export class ShipmentsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("USER", "ADMIN", "COURIER")
   @Get(":id")
-  findOne(@Param("id", ParseUUIDPipe) id: string, @Request() req: { user: AuthUser }) {
+  findOne(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Request() req: { user: AuthUser }
+  ) {
     return this.shipmentsService.findOne(id, req.user);
   }
 
@@ -102,14 +105,20 @@ export class ShipmentsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("USER", "ADMIN")
   @Post(":id/cancel")
-  cancel(@Param("id", ParseUUIDPipe) id: string, @Request() req: { user: AuthUser }) {
+  cancel(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Request() req: { user: AuthUser }
+  ) {
     return this.shipmentsService.cancel(id, req.user);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("ADMIN")
   @Delete(":id")
-  remove(@Param("id", ParseUUIDPipe) id: string, @Request() req: { user: AuthUser }) {
+  remove(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Request() req: { user: AuthUser }
+  ) {
     return this.shipmentsService.remove(id, req.user.userId);
   }
 
