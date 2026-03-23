@@ -35,7 +35,10 @@ export class TrackingController {
 
   @UseGuards(JwtAuthGuard)
   @Get(":id/tracking")
-  findByShipment(@Param("id", ParseUUIDPipe) id: string, @Request() req: { user: AuthUser }) {
+  findByShipment(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Request() req: { user: AuthUser }
+  ) {
     return this.trackingService.findByShipment(id, req.user);
   }
 }
