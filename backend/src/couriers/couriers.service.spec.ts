@@ -4,7 +4,9 @@ describe("CouriersService", () => {
   function buildPrisma(overrides: Record<string, any> = {}) {
     return {
       courier: {
-        create: jest.fn().mockResolvedValue({ id: "c1", userId: "u1", vehicleType: "CAR" }),
+        create: jest
+          .fn()
+          .mockResolvedValue({ id: "c1", userId: "u1", vehicleType: "CAR" }),
         findMany: jest.fn().mockResolvedValue([]),
         findUnique: jest.fn().mockResolvedValue(null),
         update: jest.fn().mockResolvedValue({ id: "c1" }),
