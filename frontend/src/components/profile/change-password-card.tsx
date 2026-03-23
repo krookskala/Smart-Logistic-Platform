@@ -1,7 +1,19 @@
 import AuthFormField from "../auth/auth-form-field";
 
-const STRENGTH_COLORS = ["", "bg-red-400", "bg-orange-400", "bg-yellow-400", "bg-emerald-400"];
-const STRENGTH_LABELS_COLOR = ["", "text-red-600", "text-orange-600", "text-yellow-600", "text-emerald-600"];
+const STRENGTH_COLORS = [
+  "",
+  "bg-red-400",
+  "bg-orange-400",
+  "bg-yellow-400",
+  "bg-emerald-400"
+];
+const STRENGTH_LABELS_COLOR = [
+  "",
+  "text-red-600",
+  "text-orange-600",
+  "text-yellow-600",
+  "text-emerald-600"
+];
 
 type ChangePasswordCardProps = {
   currentPassword: string;
@@ -89,7 +101,8 @@ export default function ChangePasswordCard({
                 </div>
                 <span
                   className={`text-xs font-medium ${
-                    STRENGTH_LABELS_COLOR[passwordStrength.score] || "text-stone-400"
+                    STRENGTH_LABELS_COLOR[passwordStrength.score] ||
+                    "text-stone-400"
                   }`}
                 >
                   {passwordStrength.label}
