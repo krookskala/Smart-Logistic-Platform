@@ -15,6 +15,7 @@ export default function ShipmentSearchBar({
         viewBox="0 0 24 24"
         strokeWidth={2}
         stroke="currentColor"
+        aria-hidden="true"
       >
         <path
           strokeLinecap="round"
@@ -25,6 +26,7 @@ export default function ShipmentSearchBar({
       <input
         className="w-full bg-transparent text-sm text-stone-800 outline-none placeholder:text-stone-400"
         placeholder="Search shipments..."
+        aria-label="Search shipments"
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
