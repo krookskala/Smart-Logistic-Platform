@@ -33,7 +33,8 @@ export default function ChangeEmailCard({
 
       {currentUserEmail ? (
         <p className="mt-2 text-xs text-stone-500">
-          Current email: <span className="font-medium text-stone-700">{currentUserEmail}</span>
+          Current email:{" "}
+          <span className="font-medium text-stone-700">{currentUserEmail}</span>
         </p>
       ) : null}
 
